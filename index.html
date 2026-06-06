@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Digital Sanctuary ❤️</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Hubungkan CSS Eksternal -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="overflow-x-hidden text-slate-800 antialiased">
+
+    <!-- FLOATING BACKGROUND EFFECTS -->
+    <div id="floating-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- 1. OUR DIGITAL KEY (LOGIN LOCK SCREEN) -->
+    <div id="lock-screen" class="fixed inset-0 bg-rose-50/95 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-700">
+        <div class="bg-white/80 border border-rose-100 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center backdrop-blur-lg relative overflow-hidden">
+            <div class="absolute -right-12 -top-12 w-32 h-32 bg-rose-200/50 rounded-full blur-2xl"></div>
+            <div class="absolute -left-12 -bottom-12 w-32 h-32 bg-pink-200/50 rounded-full blur-2xl"></div>
+            
+            <div class="inline-flex p-4 bg-rose-50 rounded-2xl text-rose-500 mb-6 relative">
+                <i data-lucide="heart" class="w-12 h-12 fill-rose-500 animate-pulse"></i>
+            </div>
+            
+            <h1 class="text-3xl font-serif font-bold text-rose-900 mb-2">Our Digital Sanctuary</h1>
+            <p class="text-slate-500 text-sm mb-8">Hanya untuk kita berdua. Jawab pertanyaan rahasia di bawah ini untuk membuka kunci kenangan kita.</p>
+            
+            <div class="text-left mb-6">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2">Pertanyaan Keamanan</label>
+                <div class="p-4 bg-rose-50/50 border border-rose-100 rounded-2xl text-rose-950 font-medium mb-4" id="lock-screen-question">
+                    "Di mana kencan pertama kita?"
+                </div>
+                <input type="text" id="security-answer" placeholder="Masukkan jawaban..." 
+                       class="w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all">
+                <p class="text-xs text-slate-400 mt-2">*Petunjuk: Jawab dengan huruf kecil semua atau perhatikan huruf kapital.</p>
+                <div class="text-xs text-rose-500 mt-1" id="login-hint-text">Bypass Sementara: <strong id="hint-answer-placeholder">taman</strong></div>
+            </div>
+            
+            <button onclick="checkDigitalKey()" class="w-full py-3.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold rounded-xl shadow-lg shadow-rose-200 hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                <i data-lucide="key" class="w-4 h-4"></i>
+                Buka Kunci
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN APP STRUCTURE (UNLOCKED) -->
+    <div id="main-app" class="hidden min-height-screen flex flex-col md:flex-row relative z-10">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="bg-white/70 backdrop-blur-md border-r border-rose-100 w-full md:w-64 shrink-0 md:fixed md:h-screen z-40 flex flex-col justify-between py-6 px-4">
+            <div>
+                <!-- Couple Header -->
+                <div class="flex items-center gap-3 px-2 mb-8">
+                    <div class="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-lg shadow-md">❤️</div>
+                    <div>
+                        <h2 class="font-serif font-bold text-slate-800">Us & Forever</h2>
+                        <span class="text-xs text-rose-500 font-medium">Digital Lovebook</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="space-y-1.5">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all bg-rose-50 text-rose-600">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Halaman Utama
+                    </button>
+                    <button onclick="switchTab('vault')" id="nav-vault" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-rose-50 hover:text-rose-600">
+                        <i data-lucide="images" class="w-4 h-4"></i> Galeri & Memori
+                    </button>
+                    <button onclick="switchTab('playroom')" id="nav-playroom" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-rose-50 hover:text-rose-600">
+                        <i data-lucide="gamepad-2" class="w-4 h-4"></i> Aktivitas & Game
+                    </button>
+                    <button onclick="switchTab('blueprint')" id="nav-blueprint" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-rose-50 hover:text-rose-600">
+                        <i data-lucide="calendar-heart" class="w-4 h-4"></i> Perencanaan Masa Depan
+                    </button>
+                    <button onclick="switchTab('ldr')" id="nav-ldr" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-rose-50 hover:text-rose-600">
+                        <i data-lucide="plane-takeoff" class="w-4 h-4"></i> Fitur Jarak Jauh
+                    </button>
+                    <button onclick="switchTab('settings')" id="nav-settings" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all text-slate-600 hover:bg-rose-50 hover:text-rose-600">
+                        <i data-lucide="settings" class="w-4 h-4"></i> Pengaturan Website
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Sidebar Footer & Music Player -->
+            <div class="mt-8 pt-6 border-t border-rose-50 space-y-4">
+                <!-- Soundtrack Player -->
+                <div class="p-3 bg-rose-50/50 rounded-xl border border-rose-100/50">
+                    <p class="text-xs font-semibold text-rose-500 mb-2 flex items-center gap-1">
+                        <i data-lucide="music" class="w-3.5 h-3.5 animate-spin"></i> Lagu Kita
+                    </p>
+                    <audio id="bg-audio" loop>
+                        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+                    </audio>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] text-slate-500 truncate max-w-[120px]">Melody Of Us.mp3</span>
+                        <button onclick="toggleMusic()" id="music-btn" class="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-full transition-all">
+                            <i data-lucide="play" class="w-3.5 h-3.5" id="music-icon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-[10px] text-slate-400">Dibuat dengan cinta untuk masa depan kita ❤️</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN BODY CONTENT AREA -->
+        <main class="flex-1 md:ml-64 p-4 md:p-8 min-h-screen pb-24 md:pb-8">
+
+            <!-- NOTIFICATION TOAST -->
+            <div id="toast-notif" class="fixed top-4 right-4 z-50 transform translate-y-[-100px] opacity-0 transition-all duration-500 bg-white border border-rose-100 shadow-xl rounded-2xl p-4 max-w-sm flex items-center gap-3">
+                <div class="p-2 bg-rose-50 text-rose-500 rounded-xl" id="toast-icon-container">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-slate-800" id="toast-title">Notifikasi</h4>
+                    <p class="text-xs text-slate-500" id="toast-desc">Pesan baru masuk.</p>
+                </div>
+            </div>
+
+            <!-- TAB 1: DASHBOARD (HALAMAN UTAMA) -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Header LDR / Cuaca -->
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white/40 backdrop-blur-md border border-rose-100 p-6 rounded-3xl">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-serif font-bold text-slate-800" id="welcome-title">Selamat Datang di Dunia Kita, Sayang!</h1>
+                        <p class="text-slate-500 text-sm mt-1">Hari ini adalah lembaran baru dari petualangan indah kita.</p>
+                    </div>
+                    <!-- LDR Dual Weather Widget -->
+                    <div class="flex items-center gap-4 bg-white/80 p-3 rounded-2xl border border-rose-50 shadow-sm w-full lg:w-auto">
+                        <div class="text-center px-4 border-r border-slate-100">
+                            <span class="text-xs font-semibold text-rose-500 uppercase tracking-wider block" id="widget-my-title">Lokasiku</span>
+                            <div class="flex items-center gap-2 mt-1 justify-center">
+                                <i data-lucide="cloud-sun" class="w-4 h-4 text-amber-500"></i>
+                                <span class="text-sm font-bold text-slate-700">31°C</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400" id="local-time">00:00:00</span>
+                        </div>
+                        <div class="text-center px-4">
+                            <span class="text-xs font-semibold text-pink-500 uppercase tracking-wider block" id="widget-partner-title">Pasanganku</span>
+                            <div class="flex items-center gap-2 mt-1 justify-center">
+                                <i data-lucide="cloud-snow" class="w-4 h-4 text-sky-400"></i>
+                                <span class="text-sm font-bold text-slate-700">12°C</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400" id="remote-time">00:00:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timers (Countdown & Countup) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- COUNTUP TIMER -->
+                    <div class="bg-gradient-to-br from-rose-500 to-pink-500 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+                        <div class="absolute right-0 bottom-0 translate-x-12 translate-y-12 opacity-10">
+                            <i data-lucide="heart" class="w-64 h-64 fill-white"></i>
+                        </div>
+                        <span class="text-xs font-semibold uppercase tracking-widest text-rose-100">Perjalanan Cinta Kita</span>
+                        <h3 class="text-xl font-bold mt-1 mb-6">Sudah Sejauh Ini Kita Melangkah:</h3>
+                        
+                        <div class="grid grid-cols-4 gap-2 text-center" id="countup-display">
+                            <div class="bg-white/20 backdrop-blur-md rounded-2xl p-3">
+                                <span class="text-2xl md:text-3xl font-bold block" id="countup-days">0</span>
+                                <span class="text-[10px] uppercase text-rose-100 tracking-wider">Hari</span>
+                            </div>
+                            <div class="bg-white/20 backdrop-blur-md rounded-2xl p-3">
+                                <span class="text-2xl md:text-3xl font-bold block" id="countup-hours">0</span>
+                                <span class="text-[10px] uppercase text-rose-100 tracking-wider">Jam</span>
+                            </div>
+                            <div class="bg-white/20 backdrop-blur-md rounded-2xl p-3">
+                                <span class="text-2xl md:text-3xl font-bold block" id="countup-minutes">0</span>
+                                <span class="text-[10px] uppercase text-rose-100 tracking-wider">Menit</span>
+                            </div>
+                            <div class="bg-white/20 backdrop-blur-md rounded-2xl p-3">
+                                <span class="text-2xl md:text-3xl font-bold block" id="countup-seconds">0</span>
+                                <span class="text-[10px] uppercase text-rose-100 tracking-wider">Detik</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-rose-100/80 mt-6 text-center">Dimulai sejak tanggal jadian kita: <strong class="text-white" id="anniversary-date-display">12 Oktober 2023</strong></p>
+                    </div>
+
+                    <!-- COUNTDOWN TIMER -->
+                    <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm relative overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-widest text-slate-400">Hari Spesial Berikutnya</span>
+                            <h3 class="text-xl font-bold text-slate-800 mt-1 mb-2" id="next-anniv-title">Anniversary Berikutnya 🎉</h3>
+                            <p class="text-slate-500 text-xs mb-6">Menghitung hari menuju perayaan jadian kita berikutnya!</p>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2 text-center" id="countdown-display">
+                            <div class="bg-rose-50 rounded-2xl p-3">
+                                <span class="text-2xl md:text-3xl font-bold text-rose-600 block" id="countdown-days">0</span>
+                                <span class="text-[10px] uppercase text-slate-400 tracking-wider">Hari</span>
+                            </div>
+                            <div class="bg-rose-50 rounded-2xl p-3">
+                                <span class="text-2xl md:text-3xl font-bold text-rose-600 block" id="countdown-hours">0</span>
+                                <span class="text-[10px] uppercase text-slate-400 tracking-wider">Jam</span>
+                            </div>
+                            <div class="bg-rose-50 rounded-2xl p-3">
+                                <span class="text-2xl md:text-3xl font-bold text-rose-600 block" id="countdown-minutes">0</span>
+                                <span class="text-[10px] uppercase text-slate-400 tracking-wider">Menit</span>
+                            </div>
+                            <div class="bg-rose-50 rounded-2xl p-3">
+                                <span class="text-2xl md:text-3xl font-bold text-rose-600 block" id="countdown-seconds">0</span>
+                                <span class="text-[10px] uppercase text-slate-400 tracking-wider">Detik</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Letters Panel -->
+                <div class="bg-white/60 backdrop-blur-md border border-rose-100 p-6 rounded-3xl shadow-sm relative overflow-hidden">
+                    <div class="absolute right-4 top-4 text-rose-300">
+                        <i data-lucide="mail" class="w-8 h-8 animate-bounce"></i>
+                    </div>
+                    <h3 class="text-lg font-serif font-bold text-slate-800 mb-2">Floating Love Letters 💌</h3>
+                    <p class="text-slate-500 text-xs mb-4">Apakah kamu merasa kesepian hari ini? Aktifkan surat cinta melayang di layar dan klik suratnya untuk membaca pesan manis yang tersembunyi!</p>
+                    <div class="flex gap-2">
+                        <button onclick="spawnLoveLetters()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs transition-all shadow-md">
+                            Tebarkan Surat Cinta 💖
+                        </button>
+                        <button onclick="addNewMicroMessage()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-all">
+                            Tulis Surat Baru ✏️
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mood status -->
+                <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm">
+                    <h3 class="text-lg font-serif font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="smile" class="w-5 h-5 text-rose-500"></i> Pantau Kondisi Emosi Hari Ini
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-rose-50/50 rounded-2xl border border-rose-100/50">
+                            <span class="text-xs font-semibold text-rose-600 uppercase" id="mood-my-label">Mood-ku Hari Ini:</span>
+                            <div class="flex items-center gap-3 mt-2" id="my-mood-display">
+                                <span class="text-3xl" id="my-mood-emoji">🥰</span>
+                                <div>
+                                    <h4 class="font-bold text-sm" id="my-mood-title">Sangat Bahagia</h4>
+                                    <p class="text-xs text-slate-500" id="my-mood-note">Bahagia banget hari ini karena mikirin kamu terus!</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-pink-50/50 rounded-2xl border border-pink-100/50">
+                            <span class="text-xs font-semibold text-pink-600 uppercase" id="mood-partner-label">Mood Pasanganku:</span>
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="text-3xl">😴</span>
+                                <div>
+                                    <h4 class="font-bold text-sm">Sedikit Lelah</h4>
+                                    <p class="text-xs text-slate-500">Baru selesai kelas/kerja padat, butuh pelukan jauh.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: DIGITAL VAULT -->
+            <section id="tab-vault" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-serif font-bold text-slate-800">The Digital Vault 🔒</h1>
+                        <p class="text-slate-500 text-sm">Brankas digital berisi kenangan, garis waktu hubungan, dan pesan suara terindah kita.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openTimelineModal()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs transition-all shadow-md">
+                            + Tambah Garis Waktu
+                        </button>
+                        <button onclick="openScrapbookModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-xs transition-all">
+                            + Tambah Polaroid
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 border-b border-rose-100 pb-px">
+                    <button onclick="switchVaultSubTab('timeline')" id="sub-vault-timeline" class="px-4 py-2 font-semibold text-sm border-b-2 border-rose-500 text-rose-600">Interactive Timeline</button>
+                    <button onclick="switchVaultSubTab('scrapbook')" id="sub-vault-scrapbook" class="px-4 py-2 font-semibold text-sm text-slate-500 hover:text-rose-500 border-b-2 border-transparent">Shared Scrapbook</button>
+                    <button onclick="switchVaultSubTab('voicenotes')" id="sub-vault-voicenotes" class="px-4 py-2 font-semibold text-sm text-slate-500 hover:text-rose-500 border-b-2 border-transparent">Voice Notes Archive</button>
+                </div>
+
+                <div id="vault-timeline" class="space-y-6">
+                    <div class="relative border-l-2 border-rose-200 ml-4 md:ml-8 space-y-8 py-4" id="timeline-container"></div>
+                </div>
+
+                <div id="vault-scrapbook" class="hidden">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="scrapbook-container"></div>
+                </div>
+
+                <div id="vault-voicenotes" class="hidden space-y-6">
+                    <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm max-w-xl mx-auto text-center">
+                        <i data-lucide="mic" class="w-12 h-12 text-rose-500 mx-auto mb-4 animate-pulse"></i>
+                        <h3 class="text-lg font-serif font-bold text-slate-800 mb-1">Rekam Pesan Suara Baru</h3>
+                        <p class="text-slate-500 text-xs mb-6">Kirimkan ucapan selamat tidur hangat, tawa lucumu, atau sekadar nyanyian manis.</p>
+                        
+                        <div class="flex justify-center items-center gap-4 mb-4">
+                            <button id="record-start-btn" onclick="startRecording()" class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-md">
+                                <span class="w-2.5 h-2.5 bg-white rounded-full animate-ping"></span> Mulai Rekam
+                            </button>
+                            <button id="record-stop-btn" onclick="stopRecording()" class="px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold flex items-center gap-2 hidden">
+                                <i data-lucide="square" class="w-3.5 h-3.5"></i> Selesai & Simpan
+                            </button>
+                        </div>
+                        <div id="recording-status" class="text-xs font-semibold text-rose-500 animate-pulse hidden">Merekam... Bicara sekarang!</div>
+                        <div id="audio-playback-container" class="mt-4 p-4 bg-rose-50 rounded-2xl hidden">
+                            <audio id="recorded-audio" controls class="w-full"></audio>
+                            <div class="mt-3">
+                                <input type="text" id="voice-note-title" placeholder="Beri judul rekaman ini..." class="w-full px-3 py-2 text-xs rounded-lg border border-rose-200 mb-2">
+                                <button onclick="saveVoiceNote()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-lg text-xs w-full">Simpan ke Brankas Suara</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/60 backdrop-blur-md border border-rose-100 p-6 rounded-3xl">
+                        <h3 class="text-lg font-serif font-bold text-slate-800 mb-4">Daftar Rekaman Suara Kita 🎵</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="voice-notes-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: PLAYROOM -->
+            <section id="tab-playroom" class="tab-content space-y-6 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-serif font-bold text-slate-800">The Playroom 🎮</h1>
+                        <p class="text-slate-500 text-sm">Gunakan kupon cinta, mainkan game seru, dan kirimkan kangen instan secara interaktif.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 border-b border-rose-100 pb-px">
+                    <button onclick="switchPlayroomSubTab('coupons')" id="sub-play-coupons" class="px-4 py-2 font-semibold text-sm border-b-2 border-rose-500 text-rose-600">Digital Scratch Cards</button>
+                    <button onclick="switchPlayroomSubTab('missyou')" id="sub-play-missyou" class="px-4 py-2 font-semibold text-sm text-slate-500 hover:text-rose-500 border-b-2 border-transparent">"I Miss You" & Mood</button>
+                    <button onclick="switchPlayroomSubTab('stickynotes')" id="sub-play-stickynotes" class="px-4 py-2 font-semibold text-sm text-slate-500 hover:text-rose-500 border-b-2 border-transparent">Sticky Notes Board</button>
+                    <button onclick="switchPlayroomSubTab('minigames')" id="sub-play-minigames" class="px-4 py-2 font-semibold text-sm text-slate-500 hover:text-rose-500 border-b-2 border-transparent">Custom Mini-Games</button>
+                </div>
+
+                <div id="play-coupons" class="space-y-6">
+                    <div class="bg-white/60 backdrop-blur-md border border-rose-100 p-6 rounded-3xl">
+                        <h3 class="text-lg font-serif font-bold text-slate-800 mb-2">Gosok Kupon Cinta Berhadiah 🎟️</h3>
+                        <p class="text-slate-500 text-xs mb-6">Gunakan mouse atau sentuhan jarimu di atas area abu-abu di bawah ini.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="bg-white border border-rose-100 p-4 rounded-3xl shadow-md flex flex-col items-center">
+                                <div class="relative w-64 h-32 bg-slate-200 rounded-2xl overflow-hidden cursor-crosshair">
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-rose-100 to-pink-100 text-center p-2 z-0">
+                                        <span class="text-2xl">🍕</span>
+                                        <h4 class="font-bold text-rose-600 text-sm">Kupon Makan Malam Gratis</h4>
+                                        <p class="text-[10px] text-slate-500">Bebas pilih menu & dibayari pasangan!</p>
+                                    </div>
+                                    <canvas id="scratch-canvas-1" width="256" height="128" class="absolute inset-0 z-10 touch-none"></canvas>
+                                </div>
+                                <button onclick="claimCoupon('Kupon Makan Malam Gratis', 1)" id="claim-btn-1" class="mt-4 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs w-full shadow-md">Klaim Kupon</button>
+                            </div>
+                            <div class="bg-white border border-rose-100 p-4 rounded-3xl shadow-md flex flex-col items-center">
+                                <div class="relative w-64 h-32 bg-slate-200 rounded-2xl overflow-hidden cursor-crosshair">
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-rose-100 to-pink-100 text-center p-2 z-0">
+                                        <span class="text-2xl">💆‍♂️</span>
+                                        <h4 class="font-bold text-rose-600 text-sm">Kupon Pijat Gratis 30 Menit</h4>
+                                        <p class="text-[10px] text-slate-500">Garansi pijatan pundak rileks penuh kasih.</p>
+                                    </div>
+                                    <canvas id="scratch-canvas-2" width="256" height="128" class="absolute inset-0 z-10 touch-none"></canvas>
+                                </div>
+                                <button onclick="claimCoupon('Kupon Pijat Gratis 30 Menit', 2)" id="claim-btn-2" class="mt-4 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs w-full shadow-md">Klaim Kupon</button>
+                            </div>
+                            <div class="bg-white border border-rose-100 p-4 rounded-3xl shadow-md flex flex-col items-center">
+                                <div class="relative w-64 h-32 bg-slate-200 rounded-2xl overflow-hidden cursor-crosshair">
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-rose-100 to-pink-100 text-center p-2 z-0">
+                                        <span class="text-2xl">🎬</span>
+                                        <h4 class="font-bold text-rose-600 text-sm">Kupon Bebas Pilih Film Nonton</h4>
+                                        <p class="text-[10px] text-slate-500">Pasangan dilarang komplain genre film apa saja!</p>
+                                    </div>
+                                    <canvas id="scratch-canvas-3" width="256" height="128" class="absolute inset-0 z-10 touch-none"></canvas>
+                                </div>
+                                <button onclick="claimCoupon('Kupon Bebas Pilih Film Nonton', 3)" id="claim-btn-3" class="mt-4 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs w-full shadow-md">Klaim Kupon</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="play-missyou" class="hidden space-y-6">
+                    <div class="bg-white border border-rose-100 p-8 rounded-3xl shadow-sm text-center max-w-xl mx-auto relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 text-rose-300">
+                            <i data-lucide="sparkles" class="w-6 h-6 animate-pulse"></i>
+                        </div>
+                        <h3 class="text-xl font-serif font-bold text-slate-800 mb-1" id="missyou-box-title">Hubungkan Rindu Bersama</h3>
+                        <p class="text-slate-500 text-xs mb-8">Tekan tombol hati besar untuk mengirimkan rindu instan.</p>
+                        
+                        <button onclick="sendMissYouSignal()" class="group relative inline-flex items-center justify-center w-40 h-40 bg-gradient-to-tr from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 rounded-full shadow-2xl hover:shadow-rose-300 transform hover:scale-105 transition-all">
+                            <i data-lucide="heart" class="w-20 h-20 text-white fill-white group-hover:scale-110 transition-transform"></i>
+                            <span class="absolute text-white font-bold text-xs uppercase tracking-widest translate-y-12">TEKAN AKU</span>
+                        </button>
+                        <p class="text-xs text-rose-500 font-semibold mt-6" id="miss-you-success-msg"></p>
+                    </div>
+
+                    <div class="bg-white/60 backdrop-blur-md border border-rose-100 p-6 rounded-3xl">
+                        <h3 class="text-lg font-serif font-bold text-slate-800 mb-2">Kalender Pengingat Mood</h3>
+                        <div class="flex flex-wrap gap-3 mb-6 justify-center">
+                            <button onclick="setMyMood('🥰', 'Sangat Bahagia')" class="p-3 bg-white hover:bg-rose-50 border border-slate-100 hover:border-rose-200 rounded-2xl shadow-sm text-2xl transition-all">🥰</button>
+                            <button onclick="setMyMood('😴', 'Sedikit Lelah')" class="p-3 bg-white hover:bg-rose-50 border border-slate-100 hover:border-rose-200 rounded-2xl shadow-sm text-2xl transition-all">😴</button>
+                            <button onclick="setMyMood('😢', 'Sedih / Butuh Hiburan')" class="p-3 bg-white hover:bg-rose-50 border border-slate-100 hover:border-rose-200 rounded-2xl shadow-sm text-2xl transition-all">😢</button>
+                            <button onclick="setMyMood('😡', 'Agak Kesal / PMS')" class="p-3 bg-white hover:bg-rose-50 border border-slate-100 hover:border-rose-200 rounded-2xl shadow-sm text-2xl transition-all">😡</button>
+                            <button onclick="setMyMood('🥳', 'Penuh Energi & Semangat')" class="p-3 bg-white hover:bg-rose-50 border border-slate-100 hover:border-rose-200 rounded-2xl shadow-sm text-2xl transition-all">🥳</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="play-stickynotes" class="hidden space-y-6">
+                    <div class="bg-white/60 backdrop-blur-md border border-rose-100 p-6 rounded-3xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="text-lg font-serif font-bold text-slate-800">Virtual Sticky Notes Board 📌</h3>
+                                <p class="text-slate-500 text-xs">Saling meninggalkan catatan kejutan!</p>
+                            </div>
+                            <button onclick="addNewStickyNote()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs transition-all shadow-md">
+                                + Catatan Baru
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="sticky-board"></div>
+                    </div>
+                </div>
+
+                <div id="play-minigames" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm">
+                            <h3 class="text-lg font-serif font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                <i data-lucide="brain" class="w-5 h-5 text-rose-500"></i> Trivia Pasangan Sejati
+                            </h3>
+                            <div id="trivia-game-box" class="space-y-4">
+                                <div class="p-4 bg-rose-50 rounded-2xl">
+                                    <span class="text-xs font-semibold text-rose-600 uppercase" id="trivia-q-num">Pertanyaan 1 dari 3</span>
+                                    <h4 class="font-bold text-slate-800 text-sm mt-1" id="trivia-q-text">Mencari pertanyaan...</h4>
+                                </div>
+                                <div class="grid grid-cols-1 gap-2" id="trivia-options"></div>
+                                <div class="text-center font-bold text-sm text-emerald-600 hidden" id="trivia-score-box">Skor Akhir: <span id="trivia-score">0</span>/3! Hebat sekali!</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm text-center flex flex-col items-center">
+                            <h3 class="text-lg font-serif font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                <i data-lucide="sword" class="w-5 h-5 text-rose-500"></i> Tic-Tac-Toe Cinta (🐱 vs 🐶)
+                            </h3>
+                            <div class="grid grid-cols-3 gap-2 w-48 h-48 mb-4">
+                                <button onclick="makeTttMove(0)" id="ttt-0" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                                <button onclick="makeTttMove(1)" id="ttt-1" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                                <button onclick="makeTttMove(2)" id="ttt-2" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                                <button onclick="makeTttMove(3)" id="ttt-3" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                                <button onclick="makeTttMove(4)" id="ttt-4" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                                <button onclick="makeTttMove(5)" id="ttt-5" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                                <button onclick="makeTttMove(6)" id="ttt-6" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                                <button onclick="makeTttMove(7)" id="ttt-7" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                                <button onclick="makeTttMove(8)" id="ttt-8" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
+                            </div>
+                            <div class="text-xs font-semibold text-slate-500 mb-2" id="ttt-status">Giliran Kucing (🐱)</div>
+                            <button onclick="resetTtt()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-all">Mulai Ulang Game</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: THE BLUEPRINT -->
+            <section id="tab-blueprint" class="tab-content space-y-6 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-serif font-bold text-slate-800">The Blueprint 📜</h1>
+                        <p class="text-slate-500 text-sm">Dashboard impian bersama, kencan otomatis, kalender berkala, dan surat kapsul waktu.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openBucketModal()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs transition-all shadow-md">
+                            + Tambah Bucket List
+                        </button>
+                        <button onclick="openCapsuleModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-xs transition-all">
+                            + Tulis Surat Kapsul Waktu
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 border-b border-rose-100 pb-px">
+                    <button onclick="switchBlueprintSubTab('bucket')" id="sub-blue-bucket" class="px-4 py-2 font-semibold text-sm border-b-2 border-rose-500 text-rose-600">The Bucket List Dashboard</button>
+                    <button onclick="switchBlueprintSubTab('generator')" id="sub-blue-generator" class="px-4 py-2 font-semibold text-sm text-slate-500 hover:text-rose-500 border-b-2 border-transparent">Date Night Generator</button>
+                    <button onclick="switchBlueprintSubTab('calendar')" id="sub-blue-calendar" class="px-4 py-2 font-semibold text-sm text-slate-500 hover:text-rose-500 border-b-2 border-transparent">Shared Calendar</button>
+                    <button onclick="switchBlueprintSubTab('capsule')" id="sub-blue-capsule" class="px-4 py-2 font-semibold text-sm text-slate-500 hover:text-rose-500 border-b-2 border-transparent">Future Letters</button>
+                </div>
+
+                <div id="blue-bucket" class="space-y-6">
+                    <div class="bg-white border border-rose-100 p-6 rounded-3xl">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-serif font-bold text-slate-800">Daftar Impian Bersama Kita ✈️</h3>
+                            <div class="text-xs font-semibold text-rose-600 bg-rose-50 px-3 py-1 rounded-full" id="bucket-progress-text">Progress: 50%</div>
+                        </div>
+                        <div class="w-full bg-slate-100 h-3 rounded-full mb-6 overflow-hidden">
+                            <div id="bucket-progress-bar" class="bg-gradient-to-r from-rose-500 to-pink-500 h-full transition-all duration-1000" style="width: 50%;"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="bucket-list-container"></div>
+                    </div>
+                </div>
+
+                <div id="blue-generator" class="hidden space-y-6">
+                    <div class="bg-white border border-rose-100 p-8 rounded-3xl shadow-sm text-center max-w-xl mx-auto relative overflow-hidden">
+                        <i data-lucide="sparkles" class="w-12 h-12 text-rose-500 mx-auto mb-4 animate-bounce"></i>
+                        <h3 class="text-xl font-serif font-bold text-slate-800 mb-2">Bingung Akhir Pekan Mau Ngapain?</h3>
+                        <p class="text-slate-500 text-xs mb-8">Dapatkan ide kencan acak instan.</p>
+                        
+                        <div class="p-6 bg-rose-50 rounded-2xl mb-8 border border-rose-100 hidden" id="generated-date-box">
+                            <span class="text-3xl" id="generated-date-emoji">🍿</span>
+                            <h4 class="font-bold text-rose-700 text-lg mt-2" id="generated-date-title">Nonton Film Horor</h4>
+                            <p class="text-xs text-slate-500 mt-2" id="generated-date-desc">Keterangan ide kencan.</p>
+                        </div>
+                        <button onclick="generateDateNight()" class="px-6 py-3.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold rounded-2xl shadow-lg shadow-rose-100 hover:shadow-xl transition-all">
+                            Dapatkan Ide Kencan Acak ✨
+                        </button>
+                    </div>
+                </div>
+
+                <div id="blue-calendar" class="hidden space-y-6">
+                    <div class="bg-white border border-rose-100 p-6 rounded-3xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="text-lg font-serif font-bold text-slate-800">Kalender Kegiatan Bersama 📅</h3>
+                                <p class="text-slate-500 text-xs">Jadwalkan hari-hari penting kita!</p>
+                            </div>
+                            <button onclick="openCalendarModal()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs transition-all shadow-md">
+                                + Tambah Jadwal
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-2 bg-rose-50/50 border border-rose-100/50 p-4 rounded-2xl">
+                                <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-rose-600 uppercase tracking-wider mb-2">
+                                    <span>M</span><span>S</span><span>S</span><span>R</span><span>K</span><span>J</span><span>S</span>
+                                </div>
+                                <div class="grid grid-cols-7 gap-1 text-center" id="calendar-days-grid"></div>
+                            </div>
+                            <div class="space-y-4">
+                                <h4 class="font-bold text-sm text-slate-800">Jadwal Terdekat</h4>
+                                <div class="space-y-3" id="calendar-events-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="blue-capsule" class="hidden space-y-6">
+                    <div class="bg-white border border-rose-100 p-6 rounded-3xl">
+                        <h3 class="text-lg font-serif font-bold text-slate-800 mb-2">Kapsul Waktu Surat Cinta 🔒✉️</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="time-capsule-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: LDR -->
+            <section id="tab-ldr" class="tab-content space-y-6 hidden">
+                <div class="bg-gradient-to-r from-sky-500 to-indigo-600 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden">
+                    <div class="absolute right-0 bottom-0 opacity-10">
+                        <i data-lucide="plane" class="w-64 h-64"></i>
+                    </div>
+                    <span class="text-xs font-semibold uppercase tracking-widest text-sky-100">LDR Special Suite</span>
+                    <h1 class="text-2xl md:text-3xl font-serif font-bold mt-1 mb-2">Meskipun Jarak Memisahkan, Hati Kita Tetap Satu ✈️❤️</h1>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm">
+                        <h3 class="text-lg font-serif font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="clock" class="w-5 h-5 text-sky-500"></i> Dual Jam & Cuaca Detail
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-sky-50/50 rounded-2xl border border-sky-100">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm" id="ldr-my-city">Lokasiku</h4>
+                                    <p class="text-xs text-slate-500">Waktu Lokalku</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xl font-bold text-sky-700 block" id="ldr-time-local">00:00:00</span>
+                                    <span class="text-xs text-slate-500">31°C - Berawan ⛅</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm" id="ldr-partner-city">Lokasi Dia</h4>
+                                    <p class="text-xs text-slate-500">Waktu Lokalnya</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xl font-bold text-indigo-700 block" id="ldr-time-remote">00:00:00</span>
+                                    <span class="text-xs text-slate-500">12°C - Cerah ☀️</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-serif font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                <i data-lucide="tv" class="w-5 h-5 text-indigo-500"></i> Virtual Movie Watch Party
+                            </h3>
+                            <p class="text-slate-500 text-xs mb-6">Siap untuk sesi kencan nonton bareng?</p>
+                            <div class="space-y-3 mb-6">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Tautan Video Youtube Bersama</label>
+                                <input type="text" id="watch-party-url" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-4 py-2.5 rounded-xl border border-rose-100 text-xs focus:outline-none focus:ring-2 focus:ring-rose-400">
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="startWatchParty()" class="px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl text-xs w-full shadow-md">
+                                Buat Watch Party Room 🎬
+                            </button>
+                            <button onclick="joinWatchParty()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs w-full">
+                                Gabung Sesi 🍿
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="movie-room-frame" class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
+                            <h3 class="text-sm font-bold text-slate-800">Sesi Nonton Bersama Sedang Berlangsung</h3>
+                        </div>
+                        <button onclick="closeWatchParty()" class="text-xs font-semibold text-rose-500 hover:underline">Keluar Sesi</button>
+                    </div>
+                    <div class="aspect-video w-full bg-slate-900 rounded-2xl flex items-center justify-center relative overflow-hidden">
+                        <iframe id="watch-party-iframe" class="w-full h-full absolute inset-0 hidden" src="" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+                        <div id="watch-party-fallback-player" class="text-center p-6 text-white z-10">
+                            <i data-lucide="video" class="w-16 h-16 mx-auto mb-4 text-rose-400 animate-pulse"></i>
+                            <h4 class="font-bold text-lg mb-1">Menunggu Pasangan Memulai Pemutar...</h4>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: SETTINGS -->
+            <section id="tab-settings" class="tab-content space-y-6 hidden">
+                <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm">
+                    <h2 class="text-2xl font-serif font-bold text-rose-900 mb-2 flex items-center gap-2">
+                        <i data-lucide="settings" class="w-6 h-6"></i> Konfigurasi Kustom Website Kita
+                    </h2>
+                    <p class="text-slate-500 text-xs mb-6">Sesuaikan nama panggilan, domisili kota, zona waktu, pertanyaan kunci, & tanggal hubungan Anda secara lokal.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4 p-4 bg-rose-50/50 rounded-2xl border border-rose-100/50">
+                            <h3 class="font-bold text-sm text-rose-800 flex items-center gap-2">
+                                <i data-lucide="user" class="w-4 h-4"></i> Profil Saya (Di Perangkat Ini)
+                            </h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Panggilan Saya</label>
+                                <input type="text" id="set-my-name" class="w-full px-3 py-2 text-sm rounded-xl border border-rose-100 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Kota Domisili</label>
+                                <input type="text" id="set-my-city" class="w-full px-3 py-2 text-sm rounded-xl border border-rose-100 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Zona Waktu Lokalku</label>
+                                <select id="set-my-timezone" class="w-full px-3 py-2 text-sm rounded-xl border bg-white focus:outline-none">
+                                    <option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
+                                    <option value="Asia/Makassar">WITA (Asia/Makassar)</option>
+                                    <option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
+                                    <option value="Asia/Tokyo">Jepang (Asia/Tokyo)</option>
+                                    <option value="Europe/London">London (Europe/London)</option>
+                                    <option value="America/New_York">New York (America/New_York)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 p-4 bg-pink-50/50 rounded-2xl border border-pink-100/50">
+                            <h3 class="font-bold text-sm text-pink-800 flex items-center gap-2">
+                                <i data-lucide="heart" class="w-4 h-4"></i> Profil Pasanganku (Dia)
+                            </h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Nama Panggilan Pasangan</label>
+                                <input type="text" id="set-partner-name" class="w-full px-3 py-2 text-sm rounded-xl border border-rose-100 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Kota Domisili Pasangan</label>
+                                <input type="text" id="set-partner-city" class="w-full px-3 py-2 text-sm rounded-xl border border-rose-100 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Zona Waktu Dia</label>
+                                <select id="set-partner-timezone" class="w-full px-3 py-2 text-sm rounded-xl border bg-white focus:outline-none">
+                                    <option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
+                                    <option value="Asia/Makassar">WITA (Asia/Makassar)</option>
+                                    <option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
+                                    <option value="Asia/Tokyo">Jepang (Asia/Tokyo)</option>
+                                    <option value="Europe/London">London (Europe/London)</option>
+                                    <option value="America/New_York">New York (America/New_York)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <i data-lucide="calendar" class="w-4 h-4"></i> Tanggal Istimewa Kita
+                            </h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Tanggal Jadian (Anniversary)</label>
+                                <input type="date" id="set-anniversary-date" class="w-full px-3 py-2 text-sm rounded-xl border bg-white focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <i data-lucide="lock" class="w-4 h-4"></i> Kunci Gerbang Cinta (Digital Key)
+                            </h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Pertanyaan Keamanan Rahasia</label>
+                                <input type="text" id="set-secret-question" class="w-full px-3 py-2 text-sm rounded-xl border focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Jawaban Rahasia (Gunakan Huruf Kecil Semua)</label>
+                                <input type="text" id="set-secret-answer" class="w-full px-3 py-2 text-sm rounded-xl border focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button onclick="saveAllSettings()" class="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold rounded-2xl shadow-md transition-all flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4"></i> Simpan Pengaturan Saya
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL POPUPS -->
+    <!-- Custom Reader Modal for Kapsul Waktu -->
+    <div id="capsule-view-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 text-center">
+            <div class="w-14 h-14 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i data-lucide="mail-open" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-lg font-serif font-bold text-slate-800">Isi Surat Kapsul Waktu 💌</h3>
+            <div class="p-4 bg-rose-50/50 rounded-2xl border border-rose-100/30">
+                <p id="capsule-modal-content-text" class="text-sm text-slate-700 italic font-serif leading-relaxed"></p>
+            </div>
+            <button onclick="closeCapsuleModalReader()" class="px-6 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl text-xs w-full shadow-md transition-all">Tutup Surat</button>
+        </div>
+    </div>
+
+    <!-- Timeline Modal -->
+    <div id="timeline-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-serif font-bold text-slate-800">Tambah Garis Waktu Baru ⏳</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Judul Momen</label>
+                    <input type="text" id="timeline-title-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Tanggal</label>
+                    <input type="date" id="timeline-date-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Cerita Singkat</label>
+                    <textarea id="timeline-desc-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none h-24"></textarea>
+                </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeTimelineModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">Batal</button>
+                <button onclick="saveTimelineItem()" class="px-4 py-2 bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-md">Simpan Momen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scrapbook Modal -->
+    <div id="scrapbook-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-serif font-bold text-slate-800">Tambah Foto Polaroid Baru 📸</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">URL Foto</label>
+                    <input type="text" id="scrapbook-img-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Teks Polaroid (Keterangan)</label>
+                    <input type="text" id="scrapbook-caption-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Lokasi Foto</label>
+                    <input type="text" id="scrapbook-loc-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeScrapbookModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">Batal</button>
+                <button onclick="saveScrapbookItem()" class="px-4 py-2 bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-md">Simpan Polaroid</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bucket List Modal -->
+    <div id="bucket-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-serif font-bold text-slate-800">Tambah Bucket List Baru 🎯</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Apa impian kalian?</label>
+                    <input type="text" id="bucket-title-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Kategori</label>
+                    <select id="bucket-category-input" class="w-full px-4 py-2 border rounded-xl text-sm bg-white focus:outline-none">
+                        <option value="Destinasi">Destinasi Wisata 🗺️</option>
+                        <option value="Makanan">Kuliner & Makanan 🍜</option>
+                        <option value="Aktivitas">Aktivitas Seru 🎪</option>
+                        <option value="Pencapaian">Pencapaian Hidup 🎓</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeBucketModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">Batal</button>
+                <button onclick="saveBucketItem()" class="px-4 py-2 bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-md">Simpan Impian</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Future Letter Modal -->
+    <div id="capsule-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-serif font-bold text-slate-800">Kunci Surat untuk Masa Depan ⏳✉️</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Kepada Siapa?</label>
+                    <input type="text" id="capsule-target-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Kapan Surat Boleh Dibuka?</label>
+                    <input type="date" id="capsule-unlock-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Pesan Rahasia</label>
+                    <textarea id="capsule-content-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none h-32"></textarea>
+                </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeCapsuleModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">Batal</button>
+                <button onclick="saveCapsuleItem()" class="px-4 py-2 bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-md">Kunci & Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div id="calendar-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-serif font-bold text-slate-800">Tambah Jadwal Baru 📅</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Judul Acara</label>
+                    <input type="text" id="cal-title-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Tanggal Kegiatan</label>
+                    <input type="date" id="cal-date-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Keterangan / Waktu</label>
+                    <input type="text" id="cal-desc-input" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none">
+                </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeCalendarModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">Batal</button>
+                <button onclick="saveCalendarItem()" class="px-4 py-2 bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-md">Simpan Jadwal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Micro Message Modal -->
+    <div id="micro-msg-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-serif font-bold text-slate-800">Tulis Catatan Pendek Manis 💌</h3>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Pesan Pendek (Maksimal 150 Karakter)</label>
+                <textarea id="micro-msg-input" maxlength="150" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none h-24"></textarea>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeMicroMessageModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">Batal</button>
+                <button onclick="saveMicroMessage()" class="px-4 py-2 bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-md">Sebarkan Catatan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SDK Firebase versi stabil (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- JS SCRIPTS EKSTERNAL SECARA BERURUTAN -->
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/modules/dashboard.js"></script>
+    <script src="js/modules/vault.js"></script>
+    <script src="js/modules/playroom.js"></script>
+    <script src="js/modules/blueprint.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
