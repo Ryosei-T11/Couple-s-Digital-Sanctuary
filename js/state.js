@@ -18,7 +18,7 @@ let appState = {
         partnerName: 'Pasangan',
         partnerCity: 'Tokyo',
         partnerTimezone: 'Asia/Tokyo',
-        anniversaryDate: '2023-10-12',
+        anniversaryDate: '2025-10-25',
         secretQuestion: 'Di mana lokasi kencan pertama kita?',
         secretAnswer: 'taman'
     },
