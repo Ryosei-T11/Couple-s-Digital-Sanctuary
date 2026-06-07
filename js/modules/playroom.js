@@ -86,8 +86,8 @@ function sendMissYouSignal() {
 
 // CATATAN TEMPEL (STICKY NOTES)
 let stickyNotes = [
-    { id: 1, text: 'Jangan lupa minum air putih hari ini, ganteng!', color: 'bg-yellow-100', date: '06/06/2026' },
-    { id: 2, text: 'Nanti malam VC jam 8 ya sayang!', color: 'bg-rose-100', date: '06/06/2026' }
+    { id: 1, text: 'Jangan lupa minum air putih hari ini, ganteng!', color: 'bg-yellow-100', date: '10/11/2026' },
+    { id: 2, text: 'Nanti malam call jam 8 ya sayang!', color: 'bg-rose-100', date: '13/12/2026' }
 ];
 
 function renderStickyNotes() {
