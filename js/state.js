@@ -23,9 +23,9 @@ let appState = {
         secretAnswer: 'taman'
     },
     timeline: [
-        { id: 1, title: 'Pertama Kali Bertemu', date: '2023-05-15', desc: 'Pertemuan tak disengaja di perpustakaan kampus. Kamu tersenyum, dan duniaku langsung berubah.', color: 'rose' },
-        { id: 2, title: 'Kencan Pertama', date: '2023-06-10', desc: 'Nonton bioskop, makan es krim, dan kita sama-sama malu-malu untuk memegang tangan masing-masing.', color: 'pink' },
-        { id: 3, title: 'Kita Resmi Jadian! ❤️', date: '2023-10-12', desc: 'Di bawah jembatan kota malam hari, kamu akhirnya menerima cintaku. Momen terindah sepanjang hidupku!', color: 'emerald' }
+        { id: 1, title: 'Pertama Kali Bertemu', date: '2025-09-25', desc: 'Pertemuan tak disengaja.', color: 'rose' },
+        { id: 2, title: 'Pertama...', date: '2025-09-30', desc: '....', color: 'pink' },
+        { id: 3, title: 'Kita Resmi Jadian! ❤️', date: '2023-10-12', desc: 'Di diatas padang rumput pada sore hari.', color: 'emerald' }
     ],
     scrapbook: [
         { id: 1, img: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=600', caption: 'Kencan pertama di pinggir danau kota kita yang super romantis.', location: 'Jakarta, Indonesia' },
