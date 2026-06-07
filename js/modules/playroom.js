@@ -130,9 +130,9 @@ function deleteStickyNote(id) {
 
 // GAME TRIVIA PASANGAN
 const triviaQuestions = [
-    { q: 'Siapa nama panggilan kesayangan pacarmu saat kecil?', opts: ['Adek Imut', 'Ompong', 'Si Unyil'], ans: 'Ompong' },
+    { q: 'Apa nama panggilan kesayangan kalian?', opts: ['Zeyeng', 'Babe', 'Ayang'], ans: 'Babe' },
     { q: 'Ke mana destinasi impian nomor satu yang ingin kalian kunjungi?', opts: ['Tokyo, Jepang', 'Paris, Prancis', 'Seoul, Korea'], ans: 'Tokyo, Jepang' },
-    { q: 'Makanan apa yang paling tidak disukai pasanganmu?', opts: ['Seledri', 'Durian', 'Ceker Ayam'], ans: 'Seledri' }
+    { q: 'Buah apa yang yang luarnya kuning dalamnya pisang?', opts: ['Pisang', 'Banana', 'Mungkin pisang'], ans: 'Pisang' }
 ];
 let currentTriviaIndex = 0;
 let triviaScore = 0;
