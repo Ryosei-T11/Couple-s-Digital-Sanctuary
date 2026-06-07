@@ -43,7 +43,7 @@ let appState = {
     ],
     calendarEvents: [
         { id: 1, title: 'Kencan Virtual Weekend', date: '2026-06-15', desc: 'Pukul 20.00 WIB, nonton bareng & makan pizza' },
-        { id: 2, title: 'Ulang Tahun Hubungan Kita', date: '2026-10-12', desc: 'Siapkan kejutan manis!' }
+        { id: 2, title: 'Anniversary Hubungan Kita', date: '2026-10-25', desc: 'Siapkan kejutan manis!' }
     ],
     microMessages: [
         'Aku sangat bersyukur memilikimu di hidupku.',
