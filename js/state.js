@@ -86,7 +86,7 @@ function saveToLocalStorage() {
     });
 }
 
-// 4. MENDENGARKAN PERUBAHAN CLOUD DENGAN SMART CONFLICT RESOLUTION
+// 4. MENDENGARKAN PERUBAHAN CLOUD DENGAN DETEKSI LOGOUT OTOMATIS
 database.ref('lovebook_shared_state').on('value', (snapshot) => {
     try {
         let cloudData = snapshot.val();
@@ -167,8 +167,8 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
             localStorage.setItem('digital_lovebook_state', JSON.stringify(appState));
             
             // Render ulang dashboard setelah data terisi aman
-            const isUnlocked = localStorage.getItem('lovebook_unlocked') === 'true';
-            if (isUnlocked && typeof initMainDashboard === 'function') {
+            const isUnlockedNow = localStorage.getItem('lovebook_unlocked') === 'true';
+            if (isUnlockedNow && typeof initMainDashboard === 'function') {
                 initMainDashboard();
             }
         } else {
@@ -178,14 +178,11 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
                 appState = localBackup;
                 saveToLocalStorage();
             } else {
-                console.log("Database cloud kosong & tidak ada backup lokal. Menggunakan state default awal.");
-                // PERBAIKAN UTAMA: Jangan panggil saveToLocalStorage() otomatis di sini!
-                // Biarkan cloud tetap kosong (null) sampai salah satu dari kalian menekan tombol simpan atau menulis data.
-                // Ini mencegah penimpaan default yang tidak disengaja dari perangkat baru pasangan Anda.
+                console.log("Database cloud kosong & tidak ada backup lokal.");
             }
         }
     } catch (error) {
-        console.error("Error saat memproses data Firebase:", error);
+        console.error("Error saat memproses data Firebase di state.js:", error);
     }
 }, (error) => {
     console.error("Firebase read failed: ", error);
