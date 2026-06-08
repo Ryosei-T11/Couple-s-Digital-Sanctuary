@@ -10,13 +10,19 @@ function switchVaultSubTab(subTabName) {
         document.getElementById('sub-vault-voicenotes')
     ];
     buttons.forEach(btn => {
-        btn.classList.remove('border-rose-500', 'text-rose-600');
-        btn.classList.add('text-slate-500', 'border-transparent');
+        if (btn) {
+            btn.classList.remove('border-rose-500', 'text-rose-600');
+            btn.classList.add('text-slate-500', 'border-transparent');
+        }
     });
 
-    document.getElementById(`vault-${subTabName}`).classList.remove('hidden');
-    document.getElementById(`sub-vault-${subTabName}`).classList.add('border-rose-500', 'text-rose-600');
-    document.getElementById(`sub-vault-${subTabName}`).classList.remove('text-slate-500');
+    const activeTab = document.getElementById(`vault-${subTabName}`);
+    const activeBtn = document.getElementById(`sub-vault-${subTabName}`);
+    if (activeTab) activeTab.classList.remove('hidden');
+    if (activeBtn) {
+        activeBtn.classList.add('border-rose-500', 'text-rose-600');
+        activeBtn.classList.remove('text-slate-500');
+    }
 
     if (subTabName === 'scrapbook') {
         renderScrapbook();
@@ -25,12 +31,16 @@ function switchVaultSubTab(subTabName) {
     }
 }
 
-// LOGIKA INTERACTIVE TIMELINE
+// LOGIKA INTERACTIVE TIMELINE AMAN
 function renderTimeline() {
     const container = document.getElementById('timeline-container');
+    if (!container) return;
     container.innerHTML = '';
 
-    appState.timeline.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(item => {
+    // Pastikan timeline berupa array sebelum disort
+    const timelineData = Array.isArray(appState.timeline) ? appState.timeline : [];
+
+    timelineData.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(item => {
         const block = document.createElement('div');
         block.className = 'relative pl-8 md:pl-12 group';
         block.innerHTML = `
@@ -64,6 +74,7 @@ function saveTimelineItem() {
     const desc = document.getElementById('timeline-desc-input').value.trim();
 
     if (title && date && desc) {
+        if (!Array.isArray(appState.timeline)) appState.timeline = [];
         appState.timeline.push({ id: Date.now(), title, date, desc, color: 'rose' });
         saveToLocalStorage();
         renderTimeline();
@@ -76,17 +87,21 @@ function saveTimelineItem() {
 }
 
 function deleteTimeline(id) {
+    if (!Array.isArray(appState.timeline)) return;
     appState.timeline = appState.timeline.filter(item => item.id !== id);
     saveToLocalStorage();
     renderTimeline();
 }
 
-// LOGIKA PHOTO SCRAPBOOK (POLAROID GRID)
+// LOGIKA PHOTO SCRAPBOOK AMAN
 function renderScrapbook() {
     const container = document.getElementById('scrapbook-container');
+    if (!container) return;
     container.innerHTML = '';
 
-    appState.scrapbook.forEach(item => {
+    const scrapbookData = Array.isArray(appState.scrapbook) ? appState.scrapbook : [];
+
+    scrapbookData.forEach(item => {
         const card = document.createElement('div');
         card.className = 'bg-white p-4 border border-rose-50 rounded-lg shadow-md transform hover:rotate-1 hover:scale-102 transition-all cursor-zoom-in';
         card.innerHTML = `
@@ -115,6 +130,7 @@ function saveScrapbookItem() {
     const location = document.getElementById('scrapbook-loc-input').value.trim() || 'Indonesia';
 
     if (caption) {
+        if (!Array.isArray(appState.scrapbook)) appState.scrapbook = [];
         appState.scrapbook.push({ id: Date.now(), img, caption, location });
         saveToLocalStorage();
         renderScrapbook();
@@ -127,12 +143,13 @@ function saveScrapbookItem() {
 }
 
 function deleteScrapbook(id) {
+    if (!Array.isArray(appState.scrapbook)) return;
     appState.scrapbook = appState.scrapbook.filter(item => item.id !== id);
     saveToLocalStorage();
     renderScrapbook();
 }
 
-// PEREKAM SUARA ASLI
+// PEREKAM SUARA ASLI AMAN
 let mediaRecorder;
 let audioChunks = [];
 let recordedBlobUrl = null;
@@ -177,6 +194,7 @@ function saveVoiceNote() {
     const title = titleInput.value.trim() || 'Pesan Suara Tanpa Judul';
 
     if (recordedBlobUrl) {
+        if (!Array.isArray(appState.voiceNotes)) appState.voiceNotes = [];
         appState.voiceNotes.push({ id: Date.now(), title, audioData: recordedBlobUrl, date: new Date().toLocaleDateString('id-ID') });
         saveToLocalStorage();
         renderVoiceNotes();
@@ -186,16 +204,20 @@ function saveVoiceNote() {
     }
 }
 
+// RENDER VOICE NOTES AMAN (MEMUTUS ERROR FOR-EACH)
 function renderVoiceNotes() {
     const list = document.getElementById('voice-notes-list');
+    if (!list) return;
     list.innerHTML = '';
 
-    if (appState.voiceNotes.length === 0) {
+    const voiceNotesData = Array.isArray(appState.voiceNotes) ? appState.voiceNotes : [];
+
+    if (voiceNotesData.length === 0) {
         list.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 text-xs">Belum ada rekaman suara.</div>`;
         return;
     }
 
-    appState.voiceNotes.forEach(item => {
+    voiceNotesData.forEach(item => {
         const card = document.createElement('div');
         card.className = 'bg-white border border-rose-50 p-4 rounded-2xl shadow-sm space-y-2';
         card.innerHTML = `
@@ -214,6 +236,7 @@ function renderVoiceNotes() {
 }
 
 function deleteVoiceNote(id) {
+    if (!Array.isArray(appState.voiceNotes)) return;
     appState.voiceNotes = appState.voiceNotes.filter(item => item.id !== id);
     saveToLocalStorage();
     renderVoiceNotes();
