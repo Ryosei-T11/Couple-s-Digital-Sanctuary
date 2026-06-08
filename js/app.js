@@ -31,15 +31,35 @@ window.onload = function() {
     // Periksa status gerbang masuk (Lock)
     const isUnlocked = localStorage.getItem('lovebook_unlocked');
     if (isUnlocked === 'true') {
-        if (appState) appState.unlocked = true;
-        const lockScreen = document.getElementById('lock-screen');
-        const mainApp = document.getElementById('main-app');
-        if (lockScreen) lockScreen.classList.add('hidden');
-        if (mainApp) mainApp.classList.remove('hidden');
-        
-        // Jalankan dashboard jika datanya sudah siap
-        if (typeof initMainDashboard === 'function') {
-            initMainDashboard(); 
+        const lastAccess = localStorage.getItem('last_access_time');
+        const now = Date.now();
+        const twentyFourHours = 24 * 60 * 60 * 1000; // 86400000 milidetik (24 Jam)
+
+        // JIKA TIDAK ADA AKTIVITAS SELAMA LEBIH DARI 24 JAM, KELUARKAN OTOMATIS
+        if (lastAccess && (now - parseInt(lastAccess) > twentyFourHours)) {
+            localStorage.setItem('lovebook_unlocked', 'false');
+            localStorage.removeItem('last_active_answer');
+            localStorage.removeItem('last_access_time');
+            if (appState) appState.unlocked = false;
+            
+            // Beri tahu pengguna setelah DOM selesai dimuat sepenuhnya
+            setTimeout(() => {
+                showToast('Sesi Kedaluwarsa 🔒', 'Anda telah dikeluarkan otomatis demi keamanan karena tidak mengakses website selama 24 jam.', 'lock');
+            }, 1000);
+        } else {
+            // Sesi masih valid! Perbarui waktu aktivitas terakhir perangkat ini
+            localStorage.setItem('last_access_time', now.toString());
+            
+            if (appState) appState.unlocked = true;
+            const lockScreen = document.getElementById('lock-screen');
+            const mainApp = document.getElementById('main-app');
+            if (lockScreen) lockScreen.classList.add('hidden');
+            if (mainApp) mainApp.classList.remove('hidden');
+            
+            // Jalankan dashboard jika datanya sudah siap
+            if (typeof initMainDashboard === 'function') {
+                initMainDashboard(); 
+            }
         }
     }
 
@@ -102,6 +122,9 @@ function saveAllSettings() {
     // PENTING: Karena browser ini yang melakukan perubahan kata sandi,
     // simpan sandi baru ke localStorage browser ini agar tidak ikut ter-logout otomatis!
     localStorage.setItem('last_active_answer', newAnswer);
+    
+    // Perbarui waktu aktivitas terakhir perangkat karena pengguna aktif berinteraksi
+    localStorage.setItem('last_access_time', Date.now().toString());
 
     saveToLocalStorage();
     
@@ -130,6 +153,9 @@ function checkDigitalKey() {
     if (answer === realAnswer) {
         appState.unlocked = true;
         localStorage.setItem('lovebook_unlocked', 'true');
+        
+        // Catat waktu login awal untuk memulai siklus 24 jam ke depan
+        localStorage.setItem('last_access_time', Date.now().toString());
         
         // PENTING: Simpan kunci jawaban aktif ke dalam browser ini saat berhasil masuk!
         localStorage.setItem('last_active_answer', realAnswer);
