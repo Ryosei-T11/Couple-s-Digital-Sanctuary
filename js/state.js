@@ -58,7 +58,6 @@ let appState = {
 
 // 3. FUNGSI UNTUK MENYIMPAN DATA SECARA SINKRON KE CLOUD
 function saveToLocalStorage() {
-    // Menyimpan data langsung ke Firebase agar seketika terkirim ke browser pasangan
     database.ref('lovebook_shared_state').set(appState)
     .then(() => {
         console.log("Data berhasil disinkronkan ke Cloud secara Real-Time!");
@@ -68,35 +67,56 @@ function saveToLocalStorage() {
     });
 }
 
-// 4. MENDENGARKAN PERUBAHAN SECARA REAL-TIME (PENTING!)
-// Fungsi ini akan mendeteksi setiap kali pasangan Anda mengetik surat, mengubah mood, atau mengunggah foto
+// 4. MENDENGARKAN PERUBAHAN CLOUD DENGAN SMART MIGRATION
 database.ref('lovebook_shared_state').on('value', (snapshot) => {
     try {
         let cloudData = snapshot.val();
         if (cloudData) {
+            // NORMALISASI AMAN: Menjamin setiap array wajib ada (tidak boleh undefined)
             cloudData.settings = cloudData.settings || appState.settings;
             cloudData.timeline = Array.isArray(cloudData.timeline) ? cloudData.timeline : [];
-            cloudData.scrapbook = Array.isArray(cloudData.scrapbook) ? cloudData.scrapbook : {};
-            cloudData.voiceNotes = Array.isArray(cloudData.voiceNotes) ? cloudData.voiceNotes : {};
-            cloudData.bucketList = Array.isArray(cloudData.bucketList) ? cloudData.bucketList : {};
-            cloudData.capsuleLetters = Array.isArray(cloudData.capsuleLetters) ? cloudData.capsuleLetters : {};
-            cloudData.calendarEvents = Array.isArray(cloudData.calendarEvents) ? cloudData.calendarEvents : {};
-            cloudData.microMessages = Array.isArray(cloudData.microMessages) ? cloudData.microMessages : {};
-
+            cloudData.scrapbook = Array.isArray(cloudData.scrapbook) ? cloudData.scrapbook : [];
+            cloudData.voiceNotes = Array.isArray(cloudData.voiceNotes) ? cloudData.voiceNotes : [];
+            cloudData.bucketList = Array.isArray(cloudData.bucketList) ? cloudData.bucketList : [];
+            cloudData.capsuleLetters = Array.isArray(cloudData.capsuleLetters) ? cloudData.capsuleLetters : [];
+            cloudData.calendarEvents = Array.isArray(cloudData.calendarEvents) ? cloudData.calendarEvents : [];
+            cloudData.microMessages = Array.isArray(cloudData.microMessages) ? cloudData.microMessages : [];
+            
             appState = cloudData;
             
-            // Render ulang seluruh halaman jika user sudah berhasil melewati gerbang kunci (unlocked)
+            // Backup cadangan ke localStorage lokal sebagai antisipasi jika offline
+            localStorage.setItem('digital_lovebook_state', JSON.stringify(appState));
+            
+            // Render ulang dashboard setelah data terisi aman
             const isUnlocked = localStorage.getItem('lovebook_unlocked') === 'true';
             if (isUnlocked && typeof initMainDashboard === 'function') {
                 initMainDashboard();
-            }    
+            }
         } else {
-            // Jika database Cloud masih baru/kosong, unggah data default untuk pertama kali
+            // PROSES MIGRASI PINTAR:
+            // Jika database cloud kosong, cek dulu apakah laptop/HP Anda punya data lama di localStorage
+            const localBackup = localStorage.getItem('digital_lovebook_state');
+            if (localBackup) {
+                console.log("Menemukan data lama di browser ini! Mengimpor & mengunggah ke Firebase...");
+                try {
+                    const parsedBackup = JSON.parse(localBackup);
+                    // Validasi agar data yang diimpor memiliki format yang benar
+                    if (parsedBackup && typeof parsedBackup === 'object') {
+                        appState = parsedBackup;
+                        saveToLocalStorage(); // Kirim data lama Anda ke Firebase Cloud!
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Gagal membaca backup data lokal:", e);
+                }
+            }
+            
+            // Jika di browser lokal juga benar-benar kosong, baru kirim data default bawaan
             saveToLocalStorage();
         }
     } catch (error) {
-        console.error("Error syncing data from Cloud: ", error);
+        console.error("Error saat memproses data Firebase:", error);
     }
 }, (error) => {
-    console.error("Firebase read failed: ", error); 
+    console.error("Firebase read failed: ", error);
 });
