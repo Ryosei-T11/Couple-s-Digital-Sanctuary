@@ -2,6 +2,12 @@
 const bgAudio = document.getElementById('bg-audio');
 let isMusicPlaying = false;
 
+// CACHE CUACA GLOBAL AGAR TIDAK RE-FETCH TERUS-MENERUS (Mencegah Rate Limit)
+let weatherCache = {
+    my: { temp: null, code: null, desc: null, icon: 'cloud-sun', lastUpdated: 0 },
+    partner: { temp: null, code: null, desc: null, icon: 'cloud-snow', lastUpdated: 0 }
+};
+
 // SIKLUS HIDUP PADA SAAT WEBSITE SELESAI DIMUAT
 window.onload = function() {
     // Memuat state tersimpan dari LocalStorage jika ada sebagai langkah awal
@@ -157,6 +163,9 @@ function initMainDashboard() {
     if (typeof renderCapsules === 'function') renderCapsules();
     if (typeof initScratchCards === 'function') initScratchCards();
     if (typeof spawnLoveLetters === 'function') spawnLoveLetters();
+    
+    // Picu pembaruan cuaca real-time otomatis saat dashboard dimuat
+    if (typeof updateWeather === 'function') updateWeather();
 
     // Dinamisasikan semua penamaan teks label widget LDR di halaman depan berdasarkan Settings
     const welcomeTitle = document.getElementById('welcome-title');
@@ -176,6 +185,143 @@ function initMainDashboard() {
     if (ldrMyCity) ldrMyCity.innerText = `${appState.settings.myName} (${appState.settings.myCity})`;
     if (ldrPartnerCity) ldrPartnerCity.innerText = `${appState.settings.partnerName} (${appState.settings.partnerCity})`;
     if (missyouTitle) missyouTitle.innerText = `Kirim Rindu untuk ${appState.settings.partnerName}`;
+}
+
+// ==========================================
+// LOGIKA CUACA NYATA (REAL-TIME WEATHER ENGINE)
+// ==========================================
+async function updateWeather() {
+    const myCity = appState.settings.myCity || 'Jakarta';
+    const partnerCity = appState.settings.partnerCity || 'Tokyo';
+    const now = Date.now();
+    
+    // Perbarui data cuaca dari internet maksimal setiap 10 menit sekali (600.000 md) agar hemat bandwidth
+    if (now - weatherCache.my.lastUpdated > 600000) {
+        const myData = await fetchCityWeather(myCity);
+        if (myData) {
+            weatherCache.my = { ...myData, lastUpdated: now };
+        }
+    }
+    if (now - weatherCache.partner.lastUpdated > 600000) {
+        const partnerData = await fetchCityWeather(partnerCity);
+        if (partnerData) {
+            weatherCache.partner = { ...partnerData, lastUpdated: now };
+        }
+    }
+    
+    applyWeatherToUI();
+}
+
+async function fetchCityWeather(city) {
+    try {
+        // Langkah 1: Geocoding mencari latitude & longitude berdasarkan nama kota secara otomatis
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+        const geoRes = await fetch(geoUrl);
+        const geoData = await geoRes.json();
+        
+        if (!geoData.results || geoData.results.length === 0) return null;
+        
+        const { latitude, longitude } = geoData.results[0];
+        
+        // Langkah 2: Ambil data cuaca langsung di titik koordinat tersebut
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+        const weatherRes = await fetch(weatherUrl);
+        const weatherData = await weatherRes.json();
+        
+        if (!weatherData.current_weather) return null;
+        
+        const temp = Math.round(weatherData.current_weather.temperature);
+        const code = weatherData.current_weather.weathercode;
+        const { desc, icon } = mapWeatherCode(code);
+        
+        return { temp, code, desc, icon };
+    } catch (e) {
+        console.error("Gagal menarik cuaca untuk:", city, e);
+        return null;
+    }
+}
+
+function mapWeatherCode(code) {
+    // Memetakan Weather Code Open-Meteo ke Ikon Lucide & Deskripsi Bahasa Indonesia
+    const mapping = {
+        0: { desc: 'Cerah', icon: 'sun' },
+        1: { desc: 'Cerah Berawan', icon: 'cloud-sun' },
+        2: { desc: 'Berawan', icon: 'cloud' },
+        3: { desc: 'Mendung', icon: 'cloud' },
+        45: { desc: 'Berkabut', icon: 'cloud-fog' },
+        48: { desc: 'Kabut Rime', icon: 'cloud-fog' },
+        51: { desc: 'Gerimis Ringan', icon: 'cloud-drizzle' },
+        53: { desc: 'Gerimis Sedang', icon: 'cloud-drizzle' },
+        55: { desc: 'Gerimis Lebat', icon: 'cloud-drizzle' },
+        61: { desc: 'Hujan Ringan', icon: 'cloud-rain' },
+        63: { desc: 'Hujan Sedang', icon: 'cloud-rain' },
+        65: { desc: 'Hujan Lebat', icon: 'cloud-rain' },
+        71: { desc: 'Salju Ringan', icon: 'cloud-snow' },
+        73: { desc: 'Salju Sedang', icon: 'cloud-snow' },
+        75: { desc: 'Salju Lebat', icon: 'cloud-snow' },
+        80: { desc: 'Hujan Rintik', icon: 'cloud-rain' },
+        81: { desc: 'Hujan Pancaroba', icon: 'cloud-rain' },
+        82: { desc: 'Hujan Badai', icon: 'cloud-rain' },
+        95: { desc: 'Badai Petir', icon: 'cloud-lightning' }
+    };
+    return mapping[code] || { desc: 'Berawan', icon: 'cloud' };
+}
+
+function applyWeatherToUI() {
+    // 1. Terapkan ke widget "Lokasiku" di halaman utama
+    const myWidgetDiv = document.getElementById('widget-my-title')?.nextElementSibling;
+    if (myWidgetDiv && weatherCache.my.temp !== null) {
+        const icon = myWidgetDiv.querySelector('i');
+        const tempSpan = myWidgetDiv.querySelector('span');
+        if (icon) {
+            icon.setAttribute('data-lucide', weatherCache.my.icon);
+            icon.className = `w-4 h-4 ${weatherCache.my.icon === 'sun' ? 'text-amber-500 animate-spin-slow' : 'text-slate-400'}`;
+        }
+        if (tempSpan) tempSpan.innerText = `${weatherCache.my.temp}°C`;
+    }
+
+    // 2. Terapkan ke widget "Pasanganku" di halaman utama
+    const partnerWidgetDiv = document.getElementById('widget-partner-title')?.nextElementSibling;
+    if (partnerWidgetDiv && weatherCache.partner.temp !== null) {
+        const icon = partnerWidgetDiv.querySelector('i');
+        const tempSpan = partnerWidgetDiv.querySelector('span');
+        if (icon) {
+            icon.setAttribute('data-lucide', weatherCache.partner.icon);
+            icon.className = `w-4 h-4 ${weatherCache.partner.icon === 'sun' ? 'text-amber-500 animate-spin-slow' : 'text-slate-400'}`;
+        }
+        if (tempSpan) tempSpan.innerText = `${weatherCache.partner.temp}°C`;
+    }
+
+    // 3. Terapkan ke Tab LDR "Lokasiku" detail
+    const ldrMyTempSpan = document.getElementById('ldr-time-local')?.nextElementSibling;
+    if (ldrMyTempSpan && weatherCache.my.temp !== null) {
+        ldrMyTempSpan.innerHTML = `${weatherCache.my.temp}°C - ${weatherCache.my.desc} ${getWeatherEmoji(weatherCache.my.icon)}`;
+    }
+
+    // 4. Terapkan ke Tab LDR "Lokasi Dia" detail
+    const ldrPartnerTempSpan = document.getElementById('ldr-time-remote')?.nextElementSibling;
+    if (ldrPartnerTempSpan && weatherCache.partner.temp !== null) {
+        ldrPartnerTempSpan.innerHTML = `${weatherCache.partner.temp}°C - ${weatherCache.partner.desc} ${getWeatherEmoji(weatherCache.partner.icon)}`;
+    }
+
+    // Segera render ulang Lucide Icons untuk menggambar simbol cuaca baru
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function getWeatherEmoji(icon) {
+    const emojis = {
+        'sun': '☀️',
+        'cloud-sun': '⛅',
+        'cloud': '☁️',
+        'cloud-fog': '🌫️',
+        'cloud-drizzle': '🌦️',
+        'cloud-rain': '🌧️',
+        'cloud-snow': '❄️',
+        'cloud-lightning': '⚡'
+    };
+    return emojis[icon] || '☁️';
 }
 
 // SISTEM PERPINDAHAN NAVIGASI TAB (ROUTER TAB)
