@@ -56,7 +56,7 @@ let appState = {
     ]
 };
 
-// Deteksi otomatis zona waktu awal agar tidak kosong saat inisialisasi default
+// Deteksi otomatis zona waktu awal agar tidak kosong
 try {
     const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (localTz) {
@@ -86,7 +86,7 @@ function saveToLocalStorage() {
     });
 }
 
-// 4. MENDENGARKAN PERUBAHAN CLOUD DENGAN DETEKSI LOGOUT OTOMATIS
+// 4. MENDENGARKAN PERUBAHAN CLOUD DENGAN SMART CONFLICT RESOLUTION & AUTO-LOGOUT
 database.ref('lovebook_shared_state').on('value', (snapshot) => {
     try {
         let cloudData = snapshot.val();
@@ -116,33 +116,24 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
                 }
             }
 
-            // DETEKSI LOGOUT OTOMATIS JIKA KUNCI DIGITAL DIUBAH
-            const savedUnlockKey = localStorage.getItem('lovebook_unlocked_key');
-            const isUnlocked = localStorage.getItem('lovebook_unlocked') === 'true';
-            const currentSecretAnswer = cloudData.settings.secretAnswer ? cloudData.settings.secretAnswer.toLowerCase() : '';
+            // ==========================================
+            // LOGIKA UTAMA AUTO-LOGOUT SECARA REAL-TIME
+            // ==========================================
+            const localSessionUnlocked = localStorage.getItem('lovebook_unlocked') === 'true';
+            const localLastAnswer = localStorage.getItem('last_active_answer');
+            const cloudAnswer = cloudData.settings.secretAnswer ? cloudData.settings.secretAnswer.toLowerCase() : '';
 
-            if (isUnlocked && savedUnlockKey !== currentSecretAnswer) {
-                console.warn("🔒 Kunci digital diubah di cloud! Mengeluarkan perangkat ini secara otomatis...");
-                localStorage.setItem('lovebook_unlocked', 'false');
-                localStorage.removeItem('lovebook_unlocked_key');
+            // Jika browser sedang dalam kondisi login, namun kunci di cloud ternyata berbeda dengan kunci lokal perangkat
+            if (localSessionUnlocked && localLastAnswer && localLastAnswer !== cloudAnswer) {
+                console.warn("🔒 Kunci keamanan telah diubah dari perangkat lain! Mengeluarkan paksa perangkat...");
                 
-                // Tutup dashboard secara paksa dan tampilkan kembali halaman kunci masuk
-                const lockScreen = document.getElementById('lock-screen');
-                const mainApp = document.getElementById('main-app');
-                if (lockScreen) {
-                    lockScreen.classList.remove('hidden', 'opacity-0', 'scale-95');
-                }
-                if (mainApp) {
-                    mainApp.classList.add('hidden');
-                }
-                const secInput = document.getElementById('security-answer');
-                if (secInput) secInput.value = '';
-
-                // Tampilkan notifikasi peringatan logout otomatis
-                setTimeout(() => {
-                    showToast('Sesi Berakhir 🔒', 'Pertanyaan keamanan telah diperbarui. Silakan masuk kembali dengan kunci baru.', 'lock');
-                }, 800);
-                return; // Batalkan proses render dashboard
+                // Reset status login lokal di browser ini
+                localStorage.setItem('lovebook_unlocked', 'false');
+                localStorage.removeItem('last_active_answer');
+                
+                // Segera muat ulang halaman untuk menampilkan kunci pengaman baru secara paksa
+                location.reload();
+                return;
             }
 
             // NORMALISASI AMAN: Menjamin setiap properti wajib ada (mencegah crash)
@@ -167,8 +158,8 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
             localStorage.setItem('digital_lovebook_state', JSON.stringify(appState));
             
             // Render ulang dashboard setelah data terisi aman
-            const isUnlockedNow = localStorage.getItem('lovebook_unlocked') === 'true';
-            if (isUnlockedNow && typeof initMainDashboard === 'function') {
+            // (Mengecek status login langsung dari localStorage tanpa deklarasi ulang variabel "isUnlocked")
+            if (localStorage.getItem('lovebook_unlocked') === 'true' && typeof initMainDashboard === 'function') {
                 initMainDashboard();
             }
         } else {
@@ -178,11 +169,11 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
                 appState = localBackup;
                 saveToLocalStorage();
             } else {
-                console.log("Database cloud kosong & tidak ada backup lokal.");
+                console.log("Database cloud kosong & tidak ada backup lokal. Menggunakan state default awal.");
             }
         }
     } catch (error) {
-        console.error("Error saat memproses data Firebase di state.js:", error);
+        console.error("Error saat memproses data Firebase:", error);
     }
 }, (error) => {
     console.error("Firebase read failed: ", error);
