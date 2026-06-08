@@ -5,7 +5,9 @@ const firebaseConfig = {
 };
 
 // Inisialisasi Firebase
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const database = firebase.database();
 
 // Database lokal awal website cinta
@@ -23,9 +25,9 @@ let appState = {
         secretAnswer: 'taman'
     },
     timeline: [
-        { id: 1, title: 'Pertama Kali Bertemu', date: '2025-09-25', desc: 'Pertemuan tak disengaja.', color: 'rose' },
-        { id: 2, title: 'Pertama...', date: '2025-09-30', desc: '....', color: 'pink' },
-        { id: 3, title: 'Kita Resmi Jadian! ❤️', date: '2023-10-12', desc: 'Di diatas padang rumput pada sore hari.', color: 'emerald' }
+        { id: 1, title: 'Pertama Kali Bertemu', date: '2023-05-15', desc: 'Pertemuan tak disengaja di perpustakaan kampus. Kamu tersenyum, dan duniaku langsung berubah.', color: 'rose' },
+        { id: 2, title: 'Kencan Pertama', date: '2023-06-10', desc: 'Nonton bioskop, makan es krim, dan kita sama-sama malu-malu untuk memegang tangan masing-masing.', color: 'pink' },
+        { id: 3, title: 'Kita Resmi Jadian! ❤️', date: '2023-10-12', desc: 'Di bawah jembatan kota malam hari, kamu akhirnya menerima cintaku. Momen terindah sepanjang hidupku!', color: 'emerald' }
     ],
     scrapbook: [
         { id: 1, img: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=600', caption: 'Kencan pertama di pinggir danau kota kita yang super romantis.', location: 'Jakarta, Indonesia' },
@@ -69,36 +71,32 @@ function saveToLocalStorage() {
 // 4. MENDENGARKAN PERUBAHAN SECARA REAL-TIME (PENTING!)
 // Fungsi ini akan mendeteksi setiap kali pasangan Anda mengetik surat, mengubah mood, atau mengunggah foto
 database.ref('lovebook_shared_state').on('value', (snapshot) => {
-    const cloudData = snapshot.val();
-    if (cloudData) {
-        //
-        appState.settings = {
-            ...appState.settings,
-            ...(cloudData.settings || {})
-        };
+    try {
+        let cloudData = snapshot.val();
+        if (cloudData) {
+            cloudData.settings = cloudData.settings || appState.settings;
+            cloudData.timeline = Array.isArray(cloudData.timeline) ? cloudData.timeline : [];
+            cloudData.scrapbook = Array.isArray(cloudData.scrapbook) ? cloudData.scrapbook : {};
+            cloudData.voiceNotes = Array.isArray(cloudData.voiceNotes) ? cloudData.voiceNotes : {};
+            cloudData.bucketList = Array.isArray(cloudData.bucketList) ? cloudData.bucketList : {};
+            cloudData.capsuleLetters = Array.isArray(cloudData.capsuleLetters) ? cloudData.capsuleLetters : {};
+            cloudData.calendarEvents = Array.isArray(cloudData.calendarEvents) ? cloudData.calendarEvents : {};
+            cloudData.microMessages = Array.isArray(cloudData.microMessages) ? cloudData.microMessages : {};
 
-        // Pengaman array [] agar browser tidak crash
-        appState.timeline = cloudData.timeline || {};
-        appState.scrapbook = cloudData.scrapbook || {};
-        appState.voiceNotes = cloudData.voiceNotes || {};
-        appState.bucketList = cloudData.bucketList || {};
-        appState.capsuleLetters = cloudData.capsuleLetters || {};
-        appState.calendarEvents = cloudData.calendarEvents || {};
-        appState.microMessages = cloudData.microMessages || {};
-
-        appState.unlocked = cloudData.unlocked !== undefined ? cloudData.unlocked : false;
-
-        // Render ulang seluruh halaman jika user sudah berhasil melewati gerbang kunci (unlocked)
-        const isUnlocked = localStorage.getItem('lovebook_unlocked') === 'true';
-        if (isUnlocked && typeof initMainDashboard === 'function') {
-            try {
+            appState = cloudData;
+            
+            // Render ulang seluruh halaman jika user sudah berhasil melewati gerbang kunci (unlocked)
+            const isUnlocked = localStorage.getItem('lovebook_unlocked') === 'true';
+            if (isUnlocked && typeof initMainDashboard === 'function') {
                 initMainDashboard();
-            } catch (error) {
-                console.error("Error initializing main dashboard: ", error);
-            }
+            }    
+        } else {
+            // Jika database Cloud masih baru/kosong, unggah data default untuk pertama kali
+            saveToLocalStorage();
         }
-    } else {
-        // Jika database Cloud masih baru/kosong, unggah data default untuk pertama kali
-        saveToLocalStorage();
+    } catch (error) {
+        console.error("Error syncing data from Cloud: ", error);
     }
+}, (error) => {
+    console.error("Firebase read failed: ", error); 
 });
