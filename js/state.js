@@ -71,13 +71,31 @@ function saveToLocalStorage() {
 database.ref('lovebook_shared_state').on('value', (snapshot) => {
     const cloudData = snapshot.val();
     if (cloudData) {
-        // Ganti data lokal kita dengan data terbaru dari Cloud secara instan
-        appState = cloudData;
+        //
+        appState.settings = {
+            ...appState.settings,
+            ...(cloudData.settings || {})
+        };
+
+        // Pengaman array [] agar browser tidak crash
+        appState.timeline = cloudData.timeline || {};
+        appState.scrapbook = cloudData.scrapbook || {};
+        appState.voiceNotes = cloudData.voiceNotes || {};
+        appState.bucketList = cloudData.bucketList || {};
+        appState.capsuleLetters = cloudData.capsuleLetters || {};
+        appState.calendarEvents = cloudData.calendarEvents || {};
+        appState.microMessages = cloudData.microMessages || {};
+
+        appState.unlocked = cloudData.unlocked !== undefined ? cloudData.unlocked : false;
 
         // Render ulang seluruh halaman jika user sudah berhasil melewati gerbang kunci (unlocked)
         const isUnlocked = localStorage.getItem('lovebook_unlocked') === 'true';
         if (isUnlocked && typeof initMainDashboard === 'function') {
-            initMainDashboard();
+            try {
+                initMainDashboard();
+            } catch (error) {
+                console.error("Error initializing main dashboard: ", error);
+            }
         }
     } else {
         // Jika database Cloud masih baru/kosong, unggah data default untuk pertama kali
