@@ -56,6 +56,25 @@ let appState = {
     ]
 };
 
+// Deteksi otomatis zona waktu awal agar tidak kosong saat inisialisasi default
+try {
+    const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (localTz) {
+        appState.settings.myTimezone = localTz;
+    }
+} catch (e) {
+    console.log("Deteksi otomatis zona waktu gagal, menggunakan default.");
+}
+
+// Fungsi pembantu untuk mendeteksi apakah data konfigurasi masih bersifat bawaan/default
+function isDefaultSettings(settings) {
+    if (!settings) return true;
+    return settings.myName === 'Pembuat' && 
+           settings.partnerName === 'Pasangan' && 
+           settings.myCity === 'Jakarta' && 
+           settings.partnerCity === 'Tokyo';
+}
+
 // 3. FUNGSI UNTUK MENYIMPAN DATA SECARA SINKRON KE CLOUD
 function saveToLocalStorage() {
     database.ref('lovebook_shared_state').set(appState)
@@ -63,16 +82,41 @@ function saveToLocalStorage() {
         console.log("Data berhasil disinkronkan ke Cloud secara Real-Time!");
     })
     .catch((error) => {
-        console.error("Gagal melakukan sinkronisasi: ", error);
+        console.error("Gagal melakukan sinkronisasi ke Firebase: ", error);
     });
 }
 
-// 4. MENDENGARKAN PERUBAHAN CLOUD DENGAN SMART MIGRATION
+// 4. MENDENGARKAN PERUBAHAN CLOUD DENGAN SMART CONFLICT RESOLUTION
 database.ref('lovebook_shared_state').on('value', (snapshot) => {
     try {
         let cloudData = snapshot.val();
+        
+        // Ambil cadangan dari localStorage jika ada di browser ini
+        const localBackupStr = localStorage.getItem('digital_lovebook_state');
+        let localBackup = null;
+        if (localBackupStr) {
+            try {
+                localBackup = JSON.parse(localBackupStr);
+            } catch (e) {
+                console.error("Gagal membaca backup lokal:", e);
+            }
+        }
+
         if (cloudData) {
-            // NORMALISASI AMAN: Menjamin setiap array wajib ada (tidak boleh undefined)
+            // JALUR PENYELAMATAN DATA (AUTO-RESTORE):
+            // Jika data di cloud terdeteksi kembali ke bawaan (default), tetapi browser lokal ini masih
+            // memiliki data kustom asli milik Anda, pulihkan data kustom tersebut kembali ke Firebase secara otomatis!
+            if (localBackup && localBackup.settings && !isDefaultSettings(localBackup.settings)) {
+                if (isDefaultSettings(cloudData.settings)) {
+                    console.warn("⚠️ Konflik Terdeteksi: Cloud kembali default, tetapi browser lokal memiliki data kustom.");
+                    console.log("🔄 Memulihkan data kustom Anda dari browser ini kembali ke Firebase...");
+                    appState = localBackup;
+                    saveToLocalStorage(); // Unggah ulang data Anda untuk menyelamatkan database!
+                    return;
+                }
+            }
+
+            // NORMALISASI AMAN: Menjamin setiap properti wajib ada (mencegah crash)
             cloudData.settings = cloudData.settings || appState.settings;
             cloudData.timeline = Array.isArray(cloudData.timeline) ? cloudData.timeline : [];
             cloudData.scrapbook = Array.isArray(cloudData.scrapbook) ? cloudData.scrapbook : [];
@@ -84,7 +128,13 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
             
             appState = cloudData;
             
-            // Backup cadangan ke localStorage lokal sebagai antisipasi jika offline
+            // Perbarui UI Lock Screen jika elemennya sudah dimuat di DOM
+            const lockQ = document.getElementById('lock-screen-question');
+            const lockHint = document.getElementById('hint-answer-placeholder');
+            if (lockQ) lockQ.innerText = `"${appState.settings.secretQuestion}"`;
+            if (lockHint) lockHint.innerText = appState.settings.secretAnswer;
+
+            // Simpan cadangan aman ke penyimpanan lokal browser saat ini
             localStorage.setItem('digital_lovebook_state', JSON.stringify(appState));
             
             // Render ulang dashboard setelah data terisi aman
@@ -93,26 +143,17 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
                 initMainDashboard();
             }
         } else {
-            // PROSES MIGRASI PINTAR:
-            // Jika database cloud kosong, cek dulu apakah laptop/HP Anda punya data lama di localStorage
-            const localBackup = localStorage.getItem('digital_lovebook_state');
+            // JIKA DATABASE CLOUD BENAR-BENAR KOSONG:
             if (localBackup) {
-                console.log("Menemukan data lama di browser ini! Mengimpor & mengunggah ke Firebase...");
-                try {
-                    const parsedBackup = JSON.parse(localBackup);
-                    // Validasi agar data yang diimpor memiliki format yang benar
-                    if (parsedBackup && typeof parsedBackup === 'object') {
-                        appState = parsedBackup;
-                        saveToLocalStorage(); // Kirim data lama Anda ke Firebase Cloud!
-                        return;
-                    }
-                } catch (e) {
-                    console.error("Gagal membaca backup data lokal:", e);
-                }
+                console.log("Database cloud kosong. Mengimpor data cadangan dari browser ini...");
+                appState = localBackup;
+                saveToLocalStorage();
+            } else {
+                console.log("Database cloud kosong & tidak ada backup lokal. Menggunakan state default awal.");
+                // PERBAIKAN UTAMA: Jangan panggil saveToLocalStorage() otomatis di sini!
+                // Biarkan cloud tetap kosong (null) sampai salah satu dari kalian menekan tombol simpan atau menulis data.
+                // Ini mencegah penimpaan default yang tidak disengaja dari perangkat baru pasangan Anda.
             }
-            
-            // Jika di browser lokal juga benar-benar kosong, baru kirim data default bawaan
-            saveToLocalStorage();
         }
     } catch (error) {
         console.error("Error saat memproses data Firebase:", error);
