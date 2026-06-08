@@ -116,6 +116,35 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
                 }
             }
 
+            // DETEKSI LOGOUT OTOMATIS JIKA KUNCI DIGITAL DIUBAH
+            const savedUnlockKey = localStorage.getItem('lovebook_unlocked_key');
+            const isUnlocked = localStorage.getItem('lovebook_unlocked') === 'true';
+            const currentSecretAnswer = cloudData.settings.secretAnswer ? cloudData.settings.secretAnswer.toLowerCase() : '';
+
+            if (isUnlocked && savedUnlockKey !== currentSecretAnswer) {
+                console.warn("🔒 Kunci digital diubah di cloud! Mengeluarkan perangkat ini secara otomatis...");
+                localStorage.setItem('lovebook_unlocked', 'false');
+                localStorage.removeItem('lovebook_unlocked_key');
+                
+                // Tutup dashboard secara paksa dan tampilkan kembali halaman kunci masuk
+                const lockScreen = document.getElementById('lock-screen');
+                const mainApp = document.getElementById('main-app');
+                if (lockScreen) {
+                    lockScreen.classList.remove('hidden', 'opacity-0', 'scale-95');
+                }
+                if (mainApp) {
+                    mainApp.classList.add('hidden');
+                }
+                const secInput = document.getElementById('security-answer');
+                if (secInput) secInput.value = '';
+
+                // Tampilkan notifikasi peringatan logout otomatis
+                setTimeout(() => {
+                    showToast('Sesi Berakhir 🔒', 'Pertanyaan keamanan telah diperbarui. Silakan masuk kembali dengan kunci baru.', 'lock');
+                }, 800);
+                return; // Batalkan proses render dashboard
+            }
+
             // NORMALISASI AMAN: Menjamin setiap properti wajib ada (mencegah crash)
             cloudData.settings = cloudData.settings || appState.settings;
             cloudData.timeline = Array.isArray(cloudData.timeline) ? cloudData.timeline : [];
