@@ -53,7 +53,11 @@ let appState = {
         'Suara tawamu adalah lagu favoritku di dunia.',
         'Pelukan jauh untuk pacarku yang hebat!',
         'Aku mencintaimu lebih dari kemarin, tapi tak sebanyak besok.'
-    ]
+    ],
+    watchParty: {
+        url: '',
+        status: 'idle'
+    }
 };
 
 // Deteksi otomatis zona waktu awal agar tidak kosong
@@ -145,6 +149,8 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
             cloudData.capsuleLetters = Array.isArray(cloudData.capsuleLetters) ? cloudData.capsuleLetters : [];
             cloudData.calendarEvents = Array.isArray(cloudData.calendarEvents) ? cloudData.calendarEvents : [];
             cloudData.microMessages = Array.isArray(cloudData.microMessages) ? cloudData.microMessages : [];
+            cloudData.watchParty = cloudData.watchParty || {url: '', status: 'idle' };
+
             
             appState = cloudData;
             
