@@ -455,7 +455,33 @@ function toggleMusic() {
 }
 
 // WATCH PARTY ROOM MOVIE SINKRONISASI
-// Menginisialisasi Iframe YouTube Player secara terkontrol
+// Mempersiapkan wadah elemen pemutar video yang aman dari crash CSS
+function preparePlayerContainer() {
+    const wrapper = document.querySelector('.aspect-video');
+    if (!wrapper) return null;
+
+    // Bersihkan elemen lama agar DOM tidak menumpuk/corrupt
+    const oldIframe = document.getElementById('watch-party-iframe');
+    if (oldIframe) oldIframe.remove();
+    
+    const oldPlaceholder = document.getElementById('yt-player-placeholder');
+    if (oldPlaceholder) oldPlaceholder.remove();
+
+    // Buat placeholder div baru
+    const placeholder = document.createElement('div');
+    placeholder.id = 'yt-player-placeholder';
+    placeholder.className = 'w-full h-full absolute inset-0 rounded-2xl';
+    
+    const fallback = document.getElementById('watch-party-fallback-player');
+    if (fallback) {
+        wrapper.insertBefore(placeholder, fallback);
+    } else {
+        wrapper.appendChild(placeholder);
+    }
+    return placeholder;
+}
+
+// Menginisialisasi Iframe YouTube Player secara terkontrol dan aman
 function initYoutubePlayer(videoId) {
     if (!window.YT || !window.YT.Player) {
         console.log("YouTube Player API belum siap sepenuhnya. Menunda inisialisasi...");
@@ -481,23 +507,49 @@ function initYoutubePlayer(videoId) {
 // Fungsi internal untuk membuat instansi pemutar baru
 function createPlayerInstance(videoId) {
     try {
-        const iframe = document.getElementById('watch-party-iframe');
-        if (iframe) iframe.classList.remove('hidden');
+        preparePlayerContainer();
 
-        ytPlayer = new YT.Player('watch-party-iframe', {
+        const fallback = document.getElementById('watch-party-fallback-player');
+        if (fallback) fallback.classList.add('hidden');
+
+        const playerOptions = {
             videoId: videoId,
             playerVars: {
                 'autoplay': 1,
                 'controls': 1,
                 'rel': 0,
                 'modestbranding': 1,
-                'origin': window.location.origin
+                'playsinline': 1
             },
             events: {
                 'onReady': onPlayerReady,
                 'onStateChange': onPlayerStateChange
             }
-        });
+        };
+
+        // Hindari pengiriman origin "null" saat dimuat di komputer lokal (file:///) agar tidak diblokir CORS
+        if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+            playerOptions.playerVars.origin = window.location.origin;
+        }
+
+        // Jalankan instansiasi resmi API
+        ytPlayer = new YT.Player('yt-player-placeholder', playerOptions);
+
+        // Pasang ID dan gaya pengunci dimensi agar video tampil 100% penuh secara responsif
+        setTimeout(() => {
+            const generatedIframe = document.getElementById('yt-player-placeholder');
+            if (generatedIframe) {
+                generatedIframe.id = 'watch-party-iframe';
+                generatedIframe.classList.remove('hidden');
+                generatedIframe.style.width = '100%';
+                generatedIframe.style.height = '100%';
+                generatedIframe.style.position = 'absolute';
+                generatedIframe.style.top = '0';
+                generatedIframe.style.left = '0';
+                generatedIframe.style.borderRadius = '1rem';
+            }
+        }, 500);
+
     } catch (e) {
         console.error("Gagal instansiasi YT.Player:", e);
     }
@@ -589,7 +641,6 @@ function syncPlayerWithRemote() {
 // Menerapkan UI sinkronisasi kencan menonton
 function syncWatchPartyUI() {
     const wp = appState.watchParty || { url: '', status: 'idle' };
-    const iframe = document.getElementById('watch-party-iframe');
     const fallback = document.getElementById('watch-party-fallback-player');
     const frame = document.getElementById('movie-room-frame');
     const urlInput = document.getElementById('watch-party-url');
@@ -608,7 +659,6 @@ function syncWatchPartyUI() {
         if (videoId) {
             // Jika YouTube API sudah siap dan terpasang
             if (window.YT && window.YT.Player) {
-                if (iframe) iframe.classList.remove('hidden');
                 if (fallback) fallback.classList.add('hidden');
                 
                 // Jalankan inisialisasi pemutar API
@@ -616,7 +666,9 @@ function syncWatchPartyUI() {
                 syncPlayerWithRemote();
             } else {
                 // Tampilkan indikator pemuatan jika API YouTube belum siap
-                if (iframe) iframe.classList.add('hidden');
+                const oldIframe = document.getElementById('watch-party-iframe');
+                if (oldIframe) oldIframe.classList.add('hidden');
+                
                 if (fallback) {
                     fallback.classList.remove('hidden');
                     fallback.innerHTML = `
@@ -626,16 +678,15 @@ function syncWatchPartyUI() {
                             <p class="text-xs text-slate-400">Sedang memuat library pemutar YouTube secara aman. Tunggu sebentar ya!</p>
                         </div>
                     `;
-                    lucide.createIcons();
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 }
                 loadYoutubeApiScript(); // Coba panggil pemuatan ulang script
             }
         } else {
             // Tautan eksternal kustom non-youtube
-            if (iframe) {
-                iframe.src = '';
-                iframe.classList.add('hidden');
-            }
+            const oldIframe = document.getElementById('watch-party-iframe');
+            if (oldIframe) oldIframe.classList.add('hidden');
+            
             if (fallback) {
                 fallback.classList.remove('hidden');
                 fallback.innerHTML = `
@@ -646,16 +697,15 @@ function syncWatchPartyUI() {
                         <a href="${wp.url}" target="_blank" class="mt-4 inline-block px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-xl">Buka Link Film 🚀</a>
                     </div>
                 `;
-                lucide.createIcons();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             }
         }
     } else {
         // Mode standby/idle
         if (frame) frame.classList.add('hidden');
-        if (iframe) {
-            iframe.src = '';
-            iframe.classList.add('hidden');
-        }
+        const oldIframe = document.getElementById('watch-party-iframe');
+        if (oldIframe) oldIframe.classList.add('hidden');
+        
         if (fallback) {
             fallback.classList.remove('hidden');
             fallback.innerHTML = `
@@ -665,7 +715,7 @@ function syncWatchPartyUI() {
                     <p class="text-xs text-slate-400">Atau nikmati pemutar video simulasi romantis kami di bawah ini!</p>
                 </div>
             `;
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     }
 }
