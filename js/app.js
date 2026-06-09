@@ -10,8 +10,84 @@ let weatherCache = {
     partner: { temp: null, code: null, desc: null, icon: 'cloud-snow', lastUpdated: 0 }
 };
 
+// =========================================================================
+// SISTEM PROTEKSI INTEGRITAS HAK CIPTA (SISTEM DEFENSIVE AUTO-CRASH)
+// =========================================================================
+function verifySystemIntegrity() {
+    // 1. Periksa elemen hak cipta utama di sidebar
+    const copyright = document.getElementById('copyright-notice');
+    if (!copyright) {
+        triggerIntegrityCrash();
+        return false;
+    }
+
+    // 2. Periksa kecocokan teks hak cipta (Harus mengandung nama pembuat Hīro dan nama web)
+    const text = copyright.textContent || copyright.innerText;
+    if (!text.includes('Ryo') || !text.includes('Sanctuary')) {
+        triggerIntegrityCrash();
+        return false;
+    }
+
+    // 3. Deteksi upaya penyembunyian hak cipta menggunakan manipulasi CSS
+    // Hanya periksa jika halaman utama dashboard telah terbuka sepenuhnya (bukan layar login)
+    const mainApp = document.getElementById('main-app');
+    const isMainAppVisible = mainApp && !mainApp.classList.contains('hidden');
+    if (isMainAppVisible) {
+        const style = window.getComputedStyle(copyright);
+        if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) < 0.1 || style.height === '0px') {
+            triggerIntegrityCrash();
+            return false;
+        }
+    }
+
+    // 4. Periksa elemen cadangan di layar login
+    const loginCopyright = document.getElementById('login-copyright');
+    if (!loginCopyright) {
+        triggerIntegrityCrash();
+        return false;
+    }
+    const loginText = loginCopyright.textContent || loginCopyright.innerText;
+    if (!loginText.includes('Hīro') || !loginText.includes('Sanctuary')) {
+        triggerIntegrityCrash();
+        return false;
+    }
+
+    return true;
+}
+
+// FUNGSI UNTUK MERUSAK/MENGHENTIKAN WEBSITE SECARA TOTAL (INTEGRITY CRASH)
+function triggerIntegrityCrash() {
+    // Hapus seluruh struktur website asli di DOM dan suntikkan layar pembatas keamanan permanen
+    document.body.innerHTML = `
+        <div style="position:fixed;inset:0;background:#0f172a;color:#f43f5e;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;">
+            <div style="background:rgba(244,63,94,0.1);padding:32px;border-radius:24px;border:1px solid rgba(244,63,94,0.2);max-width:500px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 20px auto;animation:pulse-alert 2s infinite;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <h1 style="font-size:24px;font-weight:bold;margin-bottom:12px;font-family:'Playfair Display',serif;color:#fff;">Pelanggaran Integritas Sistem! 🔒</h1>
+                <p style="font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:24px;text-align:justify;">
+                    Sistem mendeteksi bahwa informasi Hak Cipta (Copyright) asli milik <strong>Ryo</strong> di dalam kode HTML telah dihapus, dimodifikasi, atau disembunyikan secara ilegal. Seluruh fungsi database cloud, sinkronisasi, pemutar video, dan jam LDR telah dibekukan demi keamanan.
+                </p>
+                <p style="font-size:12px;color:#fda4af;font-weight:600;margin-bottom:20px;">
+                    Silakan kembalikan elemen hak cipta asli ke dalam file "index.html" untuk memulihkan fungsi website.
+                </p>
+                <span style="font-size:11px;color:#64748b;letter-spacing:1px;text-transform:uppercase;">Error Code: CODE_INTEGRITY_VIOLATION_COPR</span>
+            </div>
+        </div>
+        <style>
+            @keyframes pulse-alert {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: .5; transform: scale(0.95); }
+            }
+        </style>
+    `;
+    // Melempar error tak tertangani di konsol browser untuk secara paksa mematikan sisa benang JavaScript yang berjalan
+    throw new Error("System Integrity Violation: Original copyright notice tampered, altered, or deleted.");
+}
+
 // SIKLUS HIDUP PADA SAAT WEBSITE SELESAI DIMUAT
 window.onload = function() {
+    // Jalankan verifikasi sistem integrasi hak cipta pada awal startup website
+    if (!verifySystemIntegrity()) return;
+
     // Memuat state tersimpan dari LocalStorage jika ada sebagai langkah awal
     const savedState = localStorage.getItem('digital_lovebook_state');
     if (savedState) {
@@ -238,6 +314,9 @@ function saveAllSettings() {
 
 // DIGITAL KEY LOCK SCREEN CHECK
 function checkDigitalKey() {
+    // Lakukan pemeriksaan integrasi hak cipta setiap kali aksi krusial dilakukan
+    if (!verifySystemIntegrity()) return;
+
     const answerInput = document.getElementById('security-answer');
     if (!answerInput) return;
     
@@ -277,6 +356,9 @@ function checkDigitalKey() {
         
 // MENJALANKAN INISIALISASI UTAMA UNTUK SEMUA MODUL FITUR
 function initMainDashboard() {
+    // SIKLUS KEAMANAN: Pastikan hak cipta aman sebelum merender modul dashboard utama
+    if (!verifySystemIntegrity()) return;
+
     const profiles = getActiveProfiles();
     
     if (typeof updateLoveTimers === 'function') updateLoveTimers();
@@ -475,6 +557,9 @@ function getWeatherEmoji(icon) {
 
 // SISTEM PERPINDAHAN NAVIGASI TAB (ROUTER TAB)
 function switchTab(tabName) {
+    // Jalankan pemeriksaan integritas setiap kali pengguna berganti tab
+    if (!verifySystemIntegrity()) return;
+
     const contents = document.querySelectorAll('.tab-content');
     contents.forEach(content => content.classList.add('hidden'));
 
@@ -544,6 +629,9 @@ function setMyMood(emoji, title) {
 
 // DUAL WORLD CLOCKS
 function updateClocks() {
+    // SIKLUS PERULANGAN KEAMANAN: Periksa keaslian hak cipta setiap detik bersamaan dengan jam dinding
+    if (!verifySystemIntegrity()) return;
+
     const now = new Date();
     const profiles = getActiveProfiles();
     
