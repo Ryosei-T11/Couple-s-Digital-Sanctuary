@@ -24,6 +24,10 @@ let appState = {
         secretQuestion: 'Di mana lokasi kencan pertama kita?',
         secretAnswer: 'taman'
     },
+    moods: {
+        creator: { emoji: '🥰', title: 'Sangat Bahagia', note: 'Bahagia banget hari ini!' },
+        partner: { emoji: '😴', title: 'Sedikit Lelah', note: 'Butuh pelukan jauh.' }
+    },
     timeline: [
         { id: 1, title: 'Pertama Kali Bertemu', date: '2023-05-15', desc: 'Pertemuan tak disengaja di perpustakaan kampus. Kamu tersenyum, dan duniaku langsung berubah.', color: 'rose' },
         { id: 2, title: 'Kencan Pertama', date: '2023-06-10', desc: 'Nonton bioskop, makan es krim, dan kita sama-sama malu-malu untuk memegang tangan masing-masing.', color: 'pink' },
@@ -142,6 +146,7 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
 
             // NORMALISASI AMAN: Menjamin setiap properti wajib ada (mencegah crash)
             cloudData.settings = cloudData.settings || appState.settings;
+            cloudData.moods = cloudData.moods || appState.moods;
             cloudData.timeline = Array.isArray(cloudData.timeline) ? cloudData.timeline : [];
             cloudData.scrapbook = Array.isArray(cloudData.scrapbook) ? cloudData.scrapbook : [];
             cloudData.voiceNotes = Array.isArray(cloudData.voiceNotes) ? cloudData.voiceNotes : [];
@@ -159,6 +164,10 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
             const lockHint = document.getElementById('hint-answer-placeholder');
             if (lockQ) lockQ.innerText = `"${appState.settings.secretQuestion}"`;
             if (lockHint) lockHint.innerText = appState.settings.secretAnswer;
+
+            if (typeof injectIdentitySelector === 'function') {
+                injectIdentitySelector();
+            }
 
             // Simpan cadangan aman ke penyimpanan lokal browser saat ini
             localStorage.setItem('digital_lovebook_state', JSON.stringify(appState));
