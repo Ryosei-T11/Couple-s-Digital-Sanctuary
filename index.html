@@ -29,14 +29,14 @@
             </div>
             
             <h1 class="text-3xl font-serif font-bold text-rose-900 mb-2">Our Digital Sanctuary</h1>
-            <p class="text-slate-500 text-sm mb-8">Hanya untuk kita berdua. Jawab pertanyaan rahasia di bawah ini untuk membuka kunci kenangan kita.</p>
+            <p class="text-slate-500 text-sm mb-6">Hanya untuk kita berdua. Jawab pertanyaan rahasia di bawah ini untuk membuka kunci kenangan kita.</p>
             
             <div class="text-left mb-6 space-y-4">
-                <!-- Dropdown Pilih Identitas (PENTING: Menyinkronkan identitas ke LocalStorage) -->
+                <!-- Dropdown Pilih Identitas (NATIVE & STABIL) -->
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2">Siapa yang Masuk?</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-1.5">Siapa Anda?</label>
                     <div class="relative">
-                        <select id="roleSelector" class="w-full px-4 py-3 rounded-xl border border-rose-200 bg-white/95 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all appearance-none cursor-pointer">
+                        <select id="roleSelector" class="w-full px-4 py-3 rounded-xl border border-rose-200 bg-white/95 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all appearance-none cursor-pointer">
                             <option value="creator">Saya (Pembuat / Pemilik Web)</option>
                             <option value="partner">Pasangan / Kekasihku</option>
                         </select>
@@ -44,19 +44,17 @@
                             <i data-lucide="chevron-down" class="w-4 h-4"></i>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-1.5 leading-relaxed italic">
-                        *Sifat pilihan ini tersimpan lokal di perangkat ini, memastikan HP Anda & HP pasangan menampilkan data secara tepat sasaran.
-                    </p>
                 </div>
 
+                <!-- Bagian Pertanyaan Keamanan -->
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2">Pertanyaan Keamanan</label>
-                    <div class="p-4 bg-rose-50/50 border border-rose-100 rounded-2xl text-rose-950 font-medium mb-4" id="lock-screen-question">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-1.5">Pertanyaan Keamanan</label>
+                    <div class="p-4 bg-rose-50/50 border border-rose-100 rounded-2xl text-rose-950 font-medium mb-3" id="lock-screen-question">
                         "Di mana kencan pertama kita?"
                     </div>
                     <input type="text" id="security-answer" placeholder="Masukkan jawaban..." 
-                           class="w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all">
-                    <p class="text-xs text-slate-400 mt-2">*Petunjuk: Jawab dengan huruf kecil semua atau perhatikan huruf kapital.</p>
+                           class="w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all text-center">
+                    <p class="text-xs text-slate-400 mt-2">*Petunjuk: Jawab dengan huruf kecil semua.</p>
                 </div>
             </div>
             
@@ -149,7 +147,7 @@
                 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white/40 backdrop-blur-md border border-rose-100 p-6 rounded-3xl">
                     <div>
                         <h1 class="text-2xl md:text-3xl font-serif font-bold text-slate-800" id="welcome-title">Selamat Datang di Dunia Kita!</h1>
-                        <p class="text-slate-500 text-sm mt-1">UNDER DEVELOPMENT!.</p>
+                        <p class="text-slate-500 text-sm mt-1">Hari ini adalah lembaran baru dari petualangan indah kita.</p>
                     </div>
                     <!-- LDR Dual Weather Widget -->
                     <div class="flex items-center gap-4 bg-white/80 p-3 rounded-2xl border border-rose-50 shadow-sm w-full lg:w-auto">
@@ -157,15 +155,15 @@
                             <span class="text-xs font-semibold text-rose-500 uppercase tracking-wider block" id="widget-my-title">Lokasiku</span>
                             <div class="flex items-center gap-2 mt-1 justify-center">
                                 <i data-lucide="cloud-sun" class="w-4 h-4 text-amber-500"></i>
-                                <span class="text-sm font-bold text-slate-700">31°C</span>
+                                <span class="text-sm font-bold text-slate-700">--°C</span>
                             </div>
                             <span class="text-[10px] text-slate-400" id="local-time">00:00:00</span>
                         </div>
                         <div class="text-center px-4">
                             <span class="text-xs font-semibold text-pink-500 uppercase tracking-wider block" id="widget-partner-title">Pasanganku</span>
                             <div class="flex items-center gap-2 mt-1 justify-center">
-                                <i data-lucide="cloud-snow" class="w-4 h-4 text-sky-400"></i>
-                                <span class="text-sm font-bold text-slate-700">12°C</span>
+                                <i data-lucide="cloud-sun" class="w-4 h-4 text-sky-400"></i>
+                                <span class="text-sm font-bold text-slate-700">--°C</span>
                             </div>
                             <span class="text-[10px] text-slate-400" id="remote-time">00:00:00</span>
                         </div>
@@ -267,8 +265,8 @@
                         </div>
                         <div class="p-4 bg-pink-50/50 rounded-2xl border border-pink-100/50">
                             <span class="text-xs font-semibold text-pink-600 uppercase" id="mood-partner-label">Mood Pasanganku:</span>
-                            <div class="flex items-center gap-3 mt-2">
-                                <span class="text-3xl">😴</span>
+                            <div class="flex items-center gap-3 mt-2" id="partner-mood-display">
+                                <span class="text-3xl" id="partner-mood-emoji">😴</span>
                                 <div>
                                     <h4 class="font-bold text-sm">Sedikit Lelah</h4>
                                     <p class="text-xs text-slate-500">Baru selesai kelas/kerja padat, butuh pelukan jauh.</p>
@@ -460,7 +458,7 @@
 
                         <div class="bg-white border border-rose-100 p-6 rounded-3xl shadow-sm text-center flex flex-col items-center">
                             <h3 class="text-lg font-serif font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                <i data-lucide="sword" class="w-5 h-5 text-rose-500"></i> Tic-Tac-Toe Cinta (🐱 vs 🐶)
+                                <i data-lucide="swords" class="w-5 h-5 text-rose-500"></i> Tic-Tac-Toe Cinta (🐱 vs 🐶)
                             </h3>
                             <div class="grid grid-cols-3 gap-2 w-48 h-48 mb-4">
                                 <button onclick="makeTttMove(0)" id="ttt-0" class="bg-rose-50/50 hover:bg-rose-100/50 rounded-xl text-2xl font-bold flex items-center justify-center border border-rose-100/30"></button>
@@ -591,7 +589,7 @@
                                 </div>
                                 <div class="text-right">
                                     <span class="text-xl font-bold text-sky-700 block" id="ldr-time-local">00:00:00</span>
-                                    <span class="text-xs text-slate-500">31°C - Berawan ⛅</span>
+                                    <span class="text-xs text-slate-500" id="ldr-weather-local">--°C</span>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
@@ -601,7 +599,7 @@
                                 </div>
                                 <div class="text-right">
                                     <span class="text-xl font-bold text-indigo-700 block" id="ldr-time-remote">00:00:00</span>
-                                    <span class="text-xs text-slate-500">12°C - Cerah ☀️</span>
+                                    <span class="text-xs text-slate-500" id="ldr-weather-remote">--°C</span>
                                 </div>
                             </div>
                         </div>
@@ -638,7 +636,9 @@
                         <button onclick="closeWatchParty()" class="text-xs font-semibold text-rose-500 hover:underline">Keluar Sesi</button>
                     </div>
                     <div class="aspect-video w-full bg-slate-900 rounded-2xl flex items-center justify-center relative overflow-hidden">
-                        <iframe id="watch-party-iframe" class="w-full h-full absolute inset-0 hidden" src="" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+                        <div id="watch-party-player-container" class="w-full h-full absolute inset-0 hidden">
+                            <div id="watch-party-iframe"></div>
+                        </div>
                         <div id="watch-party-fallback-player" class="text-center p-6 text-white z-10">
                             <i data-lucide="video" class="w-16 h-16 mx-auto mb-4 text-rose-400 animate-pulse"></i>
                             <h4 class="font-bold text-lg mb-1">Menunggu Pasangan Memulai Pemutar...</h4>
