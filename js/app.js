@@ -1,20 +1,3 @@
-// VARIABEL KONTROL WATCH PARTY REAL-TIME
-let ytPlayer = null;
-let isSyncingFromRemote = false;
-
-// Memuat Script YouTube Iframe API Secara Dinamis
-if (!window.YT) {
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-}
-
-// Callback otomatis saat API YouTube siap digunakan
-window.onYouTubeIframeAPIReady = function() {
-    console.log("YouTube Player API Siap digunakan!");
-};
-
 // PEMUTAR AUDIO LATAR
 const bgAudio = document.getElementById('bg-audio');
 let isMusicPlaying = false;
@@ -100,6 +83,53 @@ window.onload = function() {
         const hintText = document.getElementById('login-hint-text');
         if (hintText) hintText.classList.remove('hidden');
     }, 3000);
+
+    // Menyuntikkan CSS Pelindung secara dinamis agar ukuran iframe tidak pernah menyusut menjadi 0px
+    if (!document.getElementById('yt-player-styles')) {
+        const style = document.createElement('style');
+        style.id = 'yt-player-styles';
+        style.innerHTML = `
+            #watch-party-iframe {
+                width: 100% !important;
+                height: 100% !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                border: none !important;
+                border-radius: 1rem !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Jalankan pemuatan API YouTube secara aman di latar belakang
+    loadYoutubeApiScript();
+};
+
+// Memuat Script YouTube Iframe API Secara Dinamis & Aman
+function loadYoutubeApiScript() {
+    if (!window.YT) {
+        const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+        if (!existingScript) {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            if (firstScriptTag) {
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            } else {
+                document.head.appendChild(tag);
+            }
+        }
+    }
+}
+
+// Callback otomatis saat API YouTube siap digunakan oleh peramban
+window.onYouTubeIframeAPIReady = function() {
+    console.log("YouTube Player API Siap digunakan secara global!");
+    // Sinkronkan ulang tampilan watch party setelah API siap
+    if (localStorage.getItem('lovebook_unlocked') === 'true') {
+        syncWatchPartyUI();
+    }
 };
 
 // PENGISIAN FORM PENGATURAN
@@ -425,28 +455,50 @@ function toggleMusic() {
 // WATCH PARTY ROOM MOVIE SINKRONISASI
 // Menginisialisasi Iframe YouTube Player secara terkontrol
 function initYoutubePlayer(videoId) {
+    if (!window.YT || !window.YT.Player) {
+        console.log("YouTube Player API belum siap sepenuhnya. Menunda inisialisasi...");
+        return;
+    }
+
     if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-        const currentUrl = ytPlayer.getVideoUrl();
-        if (currentUrl && !currentUrl.includes(videoId)) {
-            ytPlayer.loadVideoById(videoId);
+        try {
+            const currentUrl = ytPlayer.getVideoUrl();
+            if (currentUrl && !currentUrl.includes(videoId)) {
+                ytPlayer.loadVideoById(videoId);
+            }
+        } catch (e) {
+            console.warn("Gagal menggunakan loadVideoById, membuat ulang instansi player...", e);
+            createPlayerInstance(videoId);
         }
         return;
     }
 
-    ytPlayer = new YT.Player('watch-party-iframe', {
-        videoId: videoId,
-        playerVars: {
-            'autoplay': 1,
-            'controls': 1,
-            'rel': 0,
-            'modestbranding': 1,
-            'origin': window.location.origin
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-        }
-    });
+    createPlayerInstance(videoId);
+}
+
+// Fungsi internal untuk membuat instansi pemutar baru
+function createPlayerInstance(videoId) {
+    try {
+        const iframe = document.getElementById('watch-party-iframe');
+        if (iframe) iframe.classList.remove('hidden');
+
+        ytPlayer = new YT.Player('watch-party-iframe', {
+            videoId: videoId,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 1,
+                'rel': 0,
+                'modestbranding': 1,
+                'origin': window.location.origin
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    } catch (e) {
+        console.error("Gagal instansiasi YT.Player:", e);
+    }
 }
 
 function onPlayerReady(event) {
@@ -456,7 +508,7 @@ function onPlayerReady(event) {
 
 // Mendeteksi interaksi fisik pengguna lokal (Play, Pause, Drag Seekbar)
 function onPlayerStateChange(event) {
-    if (isSyncingFromRemote) return; // Abaikan agar tidak terjadi feedback loop tak terbatas
+    if (isSyncingFromRemote || !ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
 
     const wp = appState.watchParty || {};
     let newStatus = wp.status;
@@ -472,6 +524,7 @@ function onPlayerStateChange(event) {
 
     // Unggah koordinat detik & status play/pause ke Firebase agar HP pasangan langsung mengikuti
     if (wp.status !== newStatus || Math.abs(wp.currentTime - currentTime) > 2) {
+        if (!appState.watchParty) appState.watchParty = {};
         appState.watchParty.status = newStatus;
         appState.watchParty.currentTime = currentTime;
         appState.watchParty.lastUpdated = Date.now();
@@ -497,29 +550,33 @@ function syncPlayerWithRemote() {
 
     isSyncingFromRemote = true;
 
-    // 1. Sinkronisasi Video Playback (Play / Pause)
-    const localState = ytPlayer.getPlayerState();
-    if (wp.status === 'playing' && localState !== YT.PlayerState.PLAYING) {
-        ytPlayer.playVideo();
-    } else if (wp.status === 'paused' && localState !== YT.PlayerState.PAUSED) {
-        ytPlayer.pauseVideo();
-    }
+    try {
+        // 1. Sinkronisasi Video Playback (Play / Pause)
+        const localState = ytPlayer.getPlayerState();
+        if (wp.status === 'playing' && localState !== YT.PlayerState.PLAYING) {
+            ytPlayer.playVideo();
+        } else if (wp.status === 'paused' && localState !== YT.PlayerState.PAUSED) {
+            ytPlayer.pauseVideo();
+        }
 
-    // 2. KALIBRASI DETIK DAN LATENSI JARINGAN (DRIFT COMPENSATION)
-    const localTime = ytPlayer.getCurrentTime();
-    let remoteTime = wp.currentTime || 0;
+        // 2. KALIBRASI DETIK DAN LATENSI JARINGAN (DRIFT COMPENSATION)
+        const localTime = ytPlayer.getCurrentTime();
+        let remoteTime = wp.currentTime || 0;
 
-    // Jika video pasangan sedang berjalan, tambahkan estimasi waktu perjalanan sinyal internet
-    if (wp.status === 'playing' && wp.lastUpdated) {
-        const timePassedSinceUpdate = (Date.now() - wp.lastUpdated) / 1000;
-        remoteTime += timePassedSinceUpdate;
-    }
+        // Jika video pasangan sedang berjalan, tambahkan estimasi waktu perjalanan sinyal internet
+        if (wp.status === 'playing' && wp.lastUpdated) {
+            const timePassedSinceUpdate = (Date.now() - wp.lastUpdated) / 1000;
+            remoteTime += timePassedSinceUpdate;
+        }
 
-    // Jika selisih waktu di kedua layar lebih dari 2.5 detik, paksa menyamakan detik video!
-    const drift = Math.abs(localTime - remoteTime);
-    if (drift > 2.5) {
-        ytPlayer.seekTo(remoteTime, true);
-        console.log(`Kalibrasi Waktu Berhasil! Lompat ke detik: ${remoteTime}`);
+        // Jika selisih waktu di kedua layar lebih dari 2.5 detik, paksa menyamakan detik video!
+        const drift = Math.abs(localTime - remoteTime);
+        if (drift > 2.5) {
+            ytPlayer.seekTo(remoteTime, true);
+            console.log(`Kalibrasi Waktu Berhasil! Lompat ke detik: ${remoteTime}`);
+        }
+    } catch (e) {
+        console.warn("Gagal melakukan kalibrasi status putar:", e);
     }
 
     setTimeout(() => {
@@ -543,13 +600,34 @@ function syncWatchPartyUI() {
             videoId = wp.url.split('youtu.be/')[1].split('?')[0];
         }
 
+        if (frame) frame.classList.remove('hidden');
+        if (urlInput) urlInput.value = wp.url;
+
         if (videoId) {
-            if (iframe) iframe.classList.remove('hidden');
-            if (fallback) fallback.classList.add('hidden');
-            
-            // Jalankan inisialisasi pemutar API
-            initYoutubePlayer(videoId);
-            syncPlayerWithRemote();
+            // Jika YouTube API sudah siap dan terpasang
+            if (window.YT && window.YT.Player) {
+                if (iframe) iframe.classList.remove('hidden');
+                if (fallback) fallback.classList.add('hidden');
+                
+                // Jalankan inisialisasi pemutar API
+                initYoutubePlayer(videoId);
+                syncPlayerWithRemote();
+            } else {
+                // Tampilkan indikator pemuatan jika API YouTube belum siap
+                if (iframe) iframe.classList.add('hidden');
+                if (fallback) {
+                    fallback.classList.remove('hidden');
+                    fallback.innerHTML = `
+                        <div class="space-y-4">
+                            <i data-lucide="loader" class="w-12 h-12 mx-auto text-rose-400 animate-spin"></i>
+                            <h4 class="font-bold text-lg mb-1">Membuka Sesi Bioskop Virtual...</h4>
+                            <p class="text-xs text-slate-400">Sedang memuat library pemutar YouTube secara aman. Tunggu sebentar ya!</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                }
+                loadYoutubeApiScript(); // Coba panggil pemuatan ulang script
+            }
         } else {
             // Tautan eksternal kustom non-youtube
             if (iframe) {
@@ -569,8 +647,6 @@ function syncWatchPartyUI() {
                 lucide.createIcons();
             }
         }
-        if (frame) frame.classList.remove('hidden');
-        if (urlInput) urlInput.value = wp.url; 
     } else {
         // Mode standby/idle
         if (frame) frame.classList.add('hidden');
@@ -637,7 +713,11 @@ function closeWatchParty() {
     saveToLocalStorage(); 
     syncWatchPartyUI();
     if (ytPlayer) {
-        ytPlayer.destroy();
+        try {
+            ytPlayer.destroy();
+        } catch (e) {
+            console.warn("Gagal menghancurkan player instance:", e);
+        }
         ytPlayer = null;
     }
     showToast('Sesi Dihentikan 🚫', 'Kamu telah menutup ruang kencan menonton.', 'x-circle');
