@@ -1,3 +1,20 @@
+// VARIABEL KONTROL WATCH PARTY REAL-TIME
+let ytPlayer = null;
+let isSyncingFromRemote = false;
+
+// Memuat Script YouTube Iframe API Secara Dinamis
+if (!window.YT) {
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+}
+
+// Callback otomatis saat API YouTube siap digunakan
+window.onYouTubeIframeAPIReady = function() {
+    console.log("YouTube Player API Siap digunakan!");
+};
+
 // PEMUTAR AUDIO LATAR
 const bgAudio = document.getElementById('bg-audio');
 let isMusicPlaying = false;
@@ -406,6 +423,111 @@ function toggleMusic() {
 }
 
 // WATCH PARTY ROOM MOVIE SINKRONISASI
+// Menginisialisasi Iframe YouTube Player secara terkontrol
+function initYoutubePlayer(videoId) {
+    if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+        const currentUrl = ytPlayer.getVideoUrl();
+        if (currentUrl && !currentUrl.includes(videoId)) {
+            ytPlayer.loadVideoById(videoId);
+        }
+        return;
+    }
+
+    ytPlayer = new YT.Player('watch-party-iframe', {
+        videoId: videoId,
+        playerVars: {
+            'autoplay': 1,
+            'controls': 1,
+            'rel': 0,
+            'modestbranding': 1,
+            'origin': window.location.origin
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+        }
+    });
+}
+
+function onPlayerReady(event) {
+    console.log("Player Video Siap, menyinkronkan waktu...");
+    syncPlayerWithRemote();
+}
+
+// Mendeteksi interaksi fisik pengguna lokal (Play, Pause, Drag Seekbar)
+function onPlayerStateChange(event) {
+    if (isSyncingFromRemote) return; // Abaikan agar tidak terjadi feedback loop tak terbatas
+
+    const wp = appState.watchParty || {};
+    let newStatus = wp.status;
+    let currentTime = ytPlayer.getCurrentTime();
+
+    if (event.data === YT.PlayerState.PLAYING) {
+        newStatus = 'playing';
+    } else if (event.data === YT.PlayerState.PAUSED) {
+        newStatus = 'paused';
+    } else {
+        return; // Abaikan status transisi seperti buffering atau ended
+    }
+
+    // Unggah koordinat detik & status play/pause ke Firebase agar HP pasangan langsung mengikuti
+    if (wp.status !== newStatus || Math.abs(wp.currentTime - currentTime) > 2) {
+        appState.watchParty.status = newStatus;
+        appState.watchParty.currentTime = currentTime;
+        appState.watchParty.lastUpdated = Date.now();
+        saveToLocalStorage();
+    }
+}
+
+// Menyerap perubahan status dari perangkat pasangan dan menerapkannya secara halus
+function syncPlayerWithRemote() {
+    if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
+    const wp = appState.watchParty || {};
+    if (wp.status === 'idle' || !wp.url) return;
+
+    // Ambil Video ID
+    let videoId = '';
+    if (wp.url.includes('v=')) {
+        videoId = wp.url.split('v=')[1].split('&')[0];
+    } else if (wp.url.includes('youtu.be/')) {
+        videoId = wp.url.split('youtu.be/')[1].split('?')[0];
+    }
+
+    if (!videoId) return;
+
+    isSyncingFromRemote = true;
+
+    // 1. Sinkronisasi Video Playback (Play / Pause)
+    const localState = ytPlayer.getPlayerState();
+    if (wp.status === 'playing' && localState !== YT.PlayerState.PLAYING) {
+        ytPlayer.playVideo();
+    } else if (wp.status === 'paused' && localState !== YT.PlayerState.PAUSED) {
+        ytPlayer.pauseVideo();
+    }
+
+    // 2. KALIBRASI DETIK DAN LATENSI JARINGAN (DRIFT COMPENSATION)
+    const localTime = ytPlayer.getCurrentTime();
+    let remoteTime = wp.currentTime || 0;
+
+    // Jika video pasangan sedang berjalan, tambahkan estimasi waktu perjalanan sinyal internet
+    if (wp.status === 'playing' && wp.lastUpdated) {
+        const timePassedSinceUpdate = (Date.now() - wp.lastUpdated) / 1000;
+        remoteTime += timePassedSinceUpdate;
+    }
+
+    // Jika selisih waktu di kedua layar lebih dari 2.5 detik, paksa menyamakan detik video!
+    const drift = Math.abs(localTime - remoteTime);
+    if (drift > 2.5) {
+        ytPlayer.seekTo(remoteTime, true);
+        console.log(`Kalibrasi Waktu Berhasil! Lompat ke detik: ${remoteTime}`);
+    }
+
+    setTimeout(() => {
+        isSyncingFromRemote = false;
+    }, 600);
+}
+
+// Menerapkan UI sinkronisasi kencan menonton
 function syncWatchPartyUI() {
     const wp = appState.watchParty || { url: '', status: 'idle' };
     const iframe = document.getElementById('watch-party-iframe');
@@ -413,7 +535,7 @@ function syncWatchPartyUI() {
     const frame = document.getElementById('movie-room-frame');
     const urlInput = document.getElementById('watch-party-url');
 
-    if (wp.url && wp.status === 'playing') {
+    if (wp.url && wp.status !== 'idle') {
         let videoId = '';
         if (wp.url.includes('v=')) {
             videoId = wp.url.split('v=')[1].split('&')[0];
@@ -422,15 +544,14 @@ function syncWatchPartyUI() {
         }
 
         if (videoId) {
-            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-            // Mencegah reloading iframe berulang-ulang jika URL-nya sama saat data tersinkron
-            if (iframe && iframe.src !== embedUrl) {
-                iframe.src = embedUrl;
-            }
             if (iframe) iframe.classList.remove('hidden');
             if (fallback) fallback.classList.add('hidden');
+            
+            // Jalankan inisialisasi pemutar API
+            initYoutubePlayer(videoId);
+            syncPlayerWithRemote();
         } else {
-            // Tautan video non-youtube (misal link eksternal)
+            // Tautan eksternal kustom non-youtube
             if (iframe) {
                 iframe.src = '';
                 iframe.classList.add('hidden');
@@ -438,16 +559,18 @@ function syncWatchPartyUI() {
             if (fallback) {
                 fallback.classList.remove('hidden');
                 fallback.innerHTML = `
-                    <i data-lucide="play" class="w-16 h-16 mx-auto mb-4 text-emerald-400 animate-bounce"></i>
-                    <h4 class="font-bold text-lg mb-1">Menonton Tautan Kustom</h4>
-                    <p class="text-xs text-slate-400">Silakan klik tombol di bawah untuk membuka tautan film eksternal yang dibagikan pasanganmu:</p>
-                    <a href="${wp.url}" target="_blank" class="mt-4 inline-block px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-xl">Buka Link Film 🚀</a>
+                    <div class="space-y-4">
+                        <i data-lucide="play" class="w-16 h-16 mx-auto mb-4 text-emerald-400 animate-bounce"></i>
+                        <h4 class="font-bold text-lg mb-1">Menonton Tautan Kustom</h4>
+                        <p class="text-xs text-slate-400">Silakan klik tombol di bawah untuk membuka tautan film eksternal yang dibagikan pasanganmu:</p>
+                        <a href="${wp.url}" target="_blank" class="mt-4 inline-block px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-xl">Buka Link Film 🚀</a>
+                    </div>
                 `;
                 lucide.createIcons();
             }
         }
         if (frame) frame.classList.remove('hidden');
-        if (urlInput) urlInput.value = wp.url; // otomatis sinkronkan kolom teks di HP pasangan
+        if (urlInput) urlInput.value = wp.url; 
     } else {
         // Mode standby/idle
         if (frame) frame.classList.add('hidden');
@@ -458,9 +581,11 @@ function syncWatchPartyUI() {
         if (fallback) {
             fallback.classList.remove('hidden');
             fallback.innerHTML = `
-                <i data-lucide="video" class="w-16 h-16 mx-auto mb-4 text-rose-400 animate-pulse"></i>
-                <h4 class="font-bold text-lg mb-1">Menunggu Pasangan Memulai Pemutar...</h4>
-                <p class="text-xs text-slate-400">Atau nikmati pemutar video simulasi romantis kami di bawah ini!</p>
+                <div class="space-y-4">
+                    <i data-lucide="video" class="w-16 h-16 mx-auto mb-4 text-rose-400 animate-pulse"></i>
+                    <h4 class="font-bold text-lg mb-1">Menunggu Pasangan Memulai Pemutar...</h4>
+                    <p class="text-xs text-slate-400">Atau nikmati pemutar video simulasi romantis kami di bawah ini!</p>
+                </div>
             `;
             lucide.createIcons();
         }
@@ -475,8 +600,10 @@ function startWatchParty() {
         if (!appState.watchParty) appState.watchParty = {};
         appState.watchParty.url = url;
         appState.watchParty.status = 'playing';
+        appState.watchParty.currentTime = 0;
+        appState.watchParty.lastUpdated = Date.now();
 
-        saveToLocalStorage(); // Kirim data tautan ini ke Firebase
+        saveToLocalStorage(); 
         syncWatchPartyUI();
         showToast('Watch Party Dimulai! 🎬', 'Ruang nonton bersama virtual siap digunakan.', 'tv');
     } else {
@@ -484,11 +611,18 @@ function startWatchParty() {
     }
 }
 
+// Langkah khusus untuk melewati blokade autoplay peramban lewat gestur interaksi pertama
 function joinWatchParty() {
     const wp = appState.watchParty;
-    if (wp && wp.url && wp.status === 'playing') {
+    if (wp && wp.url && wp.status !== 'idle') {
         syncWatchPartyUI();
-        showToast('Bergabung Sesi 🍿', 'Berhasil bergabung ke sesi nonton pasanganmu.', 'user-check');
+        
+        // Pemicu izin audio & autoplay dengan memutar video langsung
+        if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+            ytPlayer.playVideo();
+            setTimeout(syncPlayerWithRemote, 500);
+        }
+        showToast('Sesi Tersinkronisasi! 🍿', 'Berhasil menyamakan detik video dengan pasangan.', 'user-check');
     } else {
         showToast('Sesi Belum Dimulai ⏳', 'Kekasihmu belum memutar video apa pun saat ini.', 'clock');
     }
@@ -498,8 +632,13 @@ function closeWatchParty() {
     if (!appState.watchParty) appState.watchParty = {};
     appState.watchParty.url = '';
     appState.watchParty.status = 'idle';
+    appState.watchParty.currentTime = 0;
 
-    saveToLocalStorage(); // Beri tahu perangkat pasangan bahwa sesi telah dihentikan
+    saveToLocalStorage(); 
     syncWatchPartyUI();
+    if (ytPlayer) {
+        ytPlayer.destroy();
+        ytPlayer = null;
+    }
     showToast('Sesi Dihentikan 🚫', 'Kamu telah menutup ruang kencan menonton.', 'x-circle');
 }
