@@ -1,6 +1,8 @@
 // PEMUTAR AUDIO LATAR
 const bgAudio = document.getElementById('bg-audio');
 let isMusicPlaying = false;
+let ytPlayer = null; 
+let isSyncingFromRemote = false;
 
 // CACHE CUACA GLOBAL AGAR TIDAK RE-FETCH TERUS-MENERUS (Mencegah Rate Limit)
 let weatherCache = {
