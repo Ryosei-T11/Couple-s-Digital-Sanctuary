@@ -283,81 +283,31 @@ function checkDigitalKey() {
     if (answer === realAnswer) {
         appState.unlocked = true;
         localStorage.setItem('lovebook_unlocked', 'true');
-        // Menghasilkan konfigurasi profil dinamis berdasarkan identitas browser aktif saat ini
-function getActiveProfiles() {
-    const role = localStorage.getItem('lovebook_user_role') || 'creator';
-    const s = appState.settings || {};
-    
-    if (role === 'partner') {
-        return {
-            myRole: 'partner',
-            partnerRole: 'creator',
-            myName: s.partnerName || 'Pasangan',
-            myCity: s.partnerCity || 'Tokyo',
-            myTimezone: s.partnerTimezone || 'Asia/Tokyo',
-            partnerName: s.myName || 'Pembuat',
-            partnerCity: s.myCity || 'Jakarta',
-            partnerTimezone: s.myTimezone || 'Asia/Jakarta'
-        };
-    } else {
-        return {
-            myRole: 'creator',
-            partnerRole: 'partner',
-            myName: s.myName || 'Pembuat',
-            myCity: s.myCity || 'Jakarta',
-            myTimezone: s.myTimezone || 'Asia/Jakarta',
-            partnerName: s.partnerName || 'Pasangan',
-            partnerCity: s.partnerCity || 'Tokyo',
-            partnerTimezone: s.partnerTimezone || 'Asia/Tokyo'
-        };
-    }
-}
-
-// Menyuntikkan Dropdown Pemilih Peran secara dinamis ke halaman login
-function injectIdentitySelector() {
-    const lockScreenContainer = document.querySelector('#lock-screen .text-left');
-    if (!lockScreenContainer) return;
-    
-    if (document.getElementById('identity-selector-wrapper')) {
-        // Jika sudah ada, cukup update pilihan teks namanya saja
-        const select = document.getElementById('identity-role-select');
-        if (select && appState && appState.settings) {
-            const currentVal = select.value;
-            select.innerHTML = `
-                <option value="creator">${appState.settings.myName || 'Pembuat'} (Pembuat)</option>
-                <option value="partner">${appState.settings.partnerName || 'Pasangan'} (Pasangan)</option>
-            `;
-            select.value = currentVal;
+        localStorage.setItem('last_active_answer', realAnswer);
+        
+        // Simpan peran terpilih secara lokal di dalam browser perangkat ini
+        const roleSelect = document.getElementById('identity-role-select');
+        if (roleSelect) {
+            localStorage.setItem('lovebook_user_role', roleSelect.value);
+        } else {
+            localStorage.setItem('lovebook_user_role', 'creator');
         }
-        return;
-    }
-    
-    const wrapper = document.createElement('div');
-    wrapper.id = 'identity-selector-wrapper';
-    wrapper.className = 'mb-4';
-    
-    const label = document.createElement('label');
-    label.className = 'block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2';
-    label.innerText = 'Pilih Identitas Anda';
-    
-    const select = document.createElement('select');
-    select.id = 'identity-role-select';
-    select.className = 'w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 bg-white text-sm';
-    
-    const creatorName = (appState && appState.settings) ? appState.settings.myName : 'Pembuat';
-    const partnerName = (appState && appState.settings) ? appState.settings.partnerName : 'Pasangan';
-    
-    select.innerHTML = `
-        <option value="creator">${creatorName} (Pembuat)</option>
-        <option value="partner">${partnerName} (Pasangan)</option>
-    `;
-    
-    wrapper.appendChild(label);
-    wrapper.appendChild(select);
-    
-    const securityInput = document.getElementById('security-answer');
-    if (securityInput) {
-        lockScreenContainer.insertBefore(wrapper, securityInput);
+        
+        const lockScreen = document.getElementById('lock-screen');
+        if (lockScreen) {
+            lockScreen.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                lockScreen.classList.add('hidden');
+                const mainApp = document.getElementById('main-app');
+                if (mainApp) mainApp.classList.remove('hidden');
+                if (typeof initMainDashboard === 'function') {
+                    initMainDashboard();
+                }
+                showToast('Akses Diberikan!', 'Selamat datang di brankas digital rahasia kita.', 'heart');
+            }, 500);
+        }
+    } else {
+        showToast('Jawaban Salah 😢', 'Silakan coba lagi atau hubungi kekasihmu!', 'shield-alert');
     }
 }
         
