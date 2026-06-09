@@ -30,7 +30,7 @@ window.onload = function() {
         if (lockHint) lockHint.innerText = appState.settings.secretAnswer;
     }
 
-    // Suntikkan pemilih identitas di halaman login secara dinamis
+    // Perbarui opsi penamaan dropdown identitas di halaman login secara aman
     injectIdentitySelector();
     
     // Periksa status gerbang masuk (Lock)
@@ -38,7 +38,7 @@ window.onload = function() {
     if (isUnlocked === 'true') {
         const lastAccess = localStorage.getItem('last_access_time');
         const now = Date.now();
-        const twentyFourHours = 24 * 60 * 60 * 1000; // 86400000 milidetik (24 Jam)
+        const twentyFourHours = 24 * 60 * 60 * 1000; // 24 Jam dalam milidetik
 
         // JIKA TIDAK ADA AKTIVITAS SELAMA LEBIH DARI 24 JAM, KELUARKAN OTOMATIS
         if (lastAccess && (now - parseInt(lastAccess) > twentyFourHours)) {
@@ -167,51 +167,16 @@ function getActiveProfiles() {
     }
 }
 
-// Menyuntikkan Dropdown Pemilih Peran secara dinamis ke halaman login
+// Menghubungkan drop-down penamaan kustom secara aman ke dropdown asli HTML (#roleSelector)
 function injectIdentitySelector() {
-    const lockScreenContainer = document.querySelector('#lock-screen .text-left');
-    if (!lockScreenContainer) return;
-    
-    if (document.getElementById('identity-selector-wrapper')) {
-        // Jika sudah ada, cukup update pilihan teks namanya saja
-        const select = document.getElementById('identity-role-select');
-        if (select && appState && appState.settings) {
-            const currentVal = select.value;
-            select.innerHTML = `
-                <option value="creator">${appState.settings.myName || 'Pembuat'} (Pembuat)</option>
-                <option value="partner">${appState.settings.partnerName || 'Pasangan'} (Pasangan)</option>
-            `;
-            select.value = currentVal;
-        }
-        return;
-    }
-    
-    const wrapper = document.createElement('div');
-    wrapper.id = 'identity-selector-wrapper';
-    wrapper.className = 'mb-4';
-    
-    const label = document.createElement('label');
-    label.className = 'block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2';
-    label.innerText = 'Pilih Identitas Anda';
-    
-    const select = document.createElement('select');
-    select.id = 'identity-role-select';
-    select.className = 'w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 bg-white text-sm';
-    
-    const creatorName = (appState && appState.settings) ? appState.settings.myName : 'Pembuat';
-    const partnerName = (appState && appState.settings) ? appState.settings.partnerName : 'Pasangan';
-    
-    select.innerHTML = `
-        <option value="creator">${creatorName} (Pembuat)</option>
-        <option value="partner">${partnerName} (Pasangan)</option>
-    `;
-    
-    wrapper.appendChild(label);
-    wrapper.appendChild(select);
-    
-    const securityInput = document.getElementById('security-answer');
-    if (securityInput) {
-        lockScreenContainer.insertBefore(wrapper, securityInput);
+    const select = document.getElementById('roleSelector');
+    if (select && appState && appState.settings) {
+        const currentVal = select.value;
+        select.innerHTML = `
+            <option value="creator">${appState.settings.myName || 'Pembuat'} (Pembuat)</option>
+            <option value="partner">${appState.settings.partnerName || 'Pasangan'} (Pasangan)</option>
+        `;
+        select.value = currentVal;
     }
 }
 
@@ -249,8 +214,7 @@ function saveAllSettings() {
     const newAnswer = document.getElementById('set-secret-answer').value.trim().toLowerCase() || 'taman';
     appState.settings.secretAnswer = newAnswer;
 
-    // PENTING: Karena browser ini yang melakukan perubahan kata sandi,
-    // simpan sandi baru ke localStorage browser ini agar tidak ikut ter-logout otomatis!
+    // PENTING: Simpan sandi baru ke localStorage browser ini agar tidak ikut ter-logout otomatis!
     localStorage.setItem('last_active_answer', newAnswer);
     
     // Perbarui waktu aktivitas terakhir perangkat karena pengguna aktif berinteraksi
@@ -286,7 +250,7 @@ function checkDigitalKey() {
         localStorage.setItem('last_active_answer', realAnswer);
         
         // Simpan peran terpilih secara lokal di dalam browser perangkat ini
-        const roleSelect = document.getElementById('identity-role-select');
+        const roleSelect = document.getElementById('roleSelector');
         if (roleSelect) {
             localStorage.setItem('lovebook_user_role', roleSelect.value);
         } else {
@@ -339,14 +303,14 @@ function initMainDashboard() {
     const ldrPartnerCity = document.getElementById('ldr-partner-city');
     const missyouTitle = document.getElementById('missyou-box-title');
 
-    if (welcomeTitle) welcomeTitle.innerText = `Selamat Datang di Dunia Kita, ${appState.settings.myName}!`;
-    if (myWidgetTitle) myWidgetTitle.innerText = `${appState.settings.myName} (${appState.settings.myCity})`;
-    if (partnerWidgetTitle) partnerWidgetTitle.innerText = `${appState.settings.partnerName} (${appState.settings.partnerCity})`;
-    if (moodMyLabel) moodMyLabel.innerText = `Mood ${appState.settings.myName} Hari Ini:`;
-    if (moodPartnerLabel) moodPartnerLabel.innerText = `Mood ${appState.settings.partnerName}:`;
-    if (ldrMyCity) ldrMyCity.innerText = `${appState.settings.myName} (${appState.settings.myCity})`;
-    if (ldrPartnerCity) ldrPartnerCity.innerText = `${appState.settings.partnerName} (${appState.settings.partnerCity})`;
-    if (missyouTitle) missyouTitle.innerText = `Kirim Rindu untuk ${appState.settings.partnerName}`;
+    if (welcomeTitle) welcomeTitle.innerText = `Selamat Datang di Dunia Kita, ${profiles.myName}!`;
+    if (myWidgetTitle) myWidgetTitle.innerText = `${profiles.myName} (${profiles.myCity})`;
+    if (partnerWidgetTitle) partnerWidgetTitle.innerText = `${profiles.partnerName} (${profiles.partnerCity})`;
+    if (moodMyLabel) moodMyLabel.innerText = `Mood ${profiles.myName} Hari Ini:`;
+    if (moodPartnerLabel) moodPartnerLabel.innerText = `Mood ${profiles.partnerName} Hari Ini:`;
+    if (ldrMyCity) ldrMyCity.innerText = `${profiles.myName} (${profiles.myCity})`;
+    if (ldrPartnerCity) ldrPartnerCity.innerText = `${profiles.partnerName} (${profiles.partnerCity})`;
+    if (missyouTitle) missyouTitle.innerText = `Kirim Rindu untuk ${profiles.partnerName}`;
 
     // SINKRONISASI RENDERING MOOD SECARA REAL-TIME MULTIPLAYER
     const moods = appState.moods || {
@@ -363,23 +327,21 @@ function initMainDashboard() {
     if (myMoodTitle) myMoodTitle.innerText = myMood.title;
     if (myMoodNote) myMoodNote.innerText = myMood.note || 'Baru saja diperbarui!';
 
-    const partnerMoodContainer = document.getElementById('mood-partner-label')?.nextElementSibling;
-    if (partnerMoodContainer) {
-        const partnerEmojiEl = partnerMoodContainer.querySelector('.text-3xl');
-        const partnerTitleEl = partnerMoodContainer.querySelector('h4');
-        const partnerNoteEl = partnerMoodContainer.querySelector('p');
-        if (partnerEmojiEl) partnerEmojiEl.innerText = partnerMood.emoji;
-        if (partnerTitleEl) partnerTitleEl.innerText = partnerMood.title;
-        if (partnerNoteEl) partnerNoteEl.innerText = partnerMood.note || 'Sedang sibuk beraktivitas.';
-    }
+    const partnerMoodEmoji = document.getElementById('partner-mood-emoji');
+    const partnerMoodTitle = document.getElementById('partner-mood-title');
+    const partnerMoodNote = document.getElementById('partner-mood-note');
+    if (partnerMoodEmoji) partnerMoodEmoji.innerText = partnerMood.emoji;
+    if (partnerMoodTitle) partnerMoodTitle.innerText = partnerMood.title;
+    if (partnerMoodNote) partnerMoodNote.innerText = partnerMood.note || 'Sedang sibuk beraktivitas.';
 }
 
 // ==========================================
 // LOGIKA CUACA NYATA (REAL-TIME WEATHER ENGINE)
 // ==========================================
 async function updateWeather() {
-    const myCity = appState.settings.myCity || 'Jakarta';
-    const partnerCity = appState.settings.partnerCity || 'Tokyo';
+    const profiles = getActiveProfiles();
+    const myCity = profiles.myCity || 'Jakarta';
+    const partnerCity = profiles.partnerCity || 'Tokyo';
     const now = Date.now();
     
     // Perbarui data cuaca dari internet maksimal setiap 10 menit sekali (600.000 md) agar hemat bandwidth
