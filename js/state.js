@@ -24,10 +24,12 @@ let appState = {
         secretQuestion: 'Di mana lokasi kencan pertama kita?',
         secretAnswer: 'taman'
     },
-    moods: {
-        creator: { emoji: '🥰', title: 'Sangat Bahagia', note: 'Bahagia banget hari ini!' },
-        partner: { emoji: '😴', title: 'Sedikit Lelah', note: 'Butuh pelukan jauh.' }
-    },
+    myMoodEmoji: '🥰',
+    myMoodTitle: 'Sangat Bahagia',
+    myMoodNote: 'Bahagia banget hari ini karena mikirin kamu terus!',
+    partnerMoodEmoji: '😴',
+    partnerMoodTitle: 'Sedikit Lelah',
+    partnerMoodNote: 'Baru selesai kelas/kerja padat, butuh pelukan jauh.',
     timeline: [
         { id: 1, title: 'Pertama Kali Bertemu', date: '2023-05-15', desc: 'Pertemuan tak disengaja di perpustakaan kampus. Kamu tersenyum, dan duniaku langsung berubah.', color: 'rose' },
         { id: 2, title: 'Kencan Pertama', date: '2023-06-10', desc: 'Nonton bioskop, makan es krim, dan kita sama-sama malu-malu untuk memegang tangan masing-masing.', color: 'pink' },
@@ -59,8 +61,11 @@ let appState = {
         'Aku mencintaimu lebih dari kemarin, tapi tak sebanyak besok.'
     ],
     watchParty: {
+        active: false,
         url: '',
-        status: 'idle'
+        currentTime: 0,
+        isPlaying: false,
+        lastUpdated: 0
     }
 };
 
@@ -146,7 +151,6 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
 
             // NORMALISASI AMAN: Menjamin setiap properti wajib ada (mencegah crash)
             cloudData.settings = cloudData.settings || appState.settings;
-            cloudData.moods = cloudData.moods || appState.moods;
             cloudData.timeline = Array.isArray(cloudData.timeline) ? cloudData.timeline : [];
             cloudData.scrapbook = Array.isArray(cloudData.scrapbook) ? cloudData.scrapbook : [];
             cloudData.voiceNotes = Array.isArray(cloudData.voiceNotes) ? cloudData.voiceNotes : [];
@@ -156,6 +160,13 @@ database.ref('lovebook_shared_state').on('value', (snapshot) => {
             cloudData.microMessages = Array.isArray(cloudData.microMessages) ? cloudData.microMessages : [];
             cloudData.watchParty = cloudData.watchParty || {url: '', status: 'idle' };
 
+             // Mengisi nilai mood default jika belum ada di cloud
+            cloudData.myMoodEmoji = cloudData.myMoodEmoji || appState.myMoodEmoji;
+            cloudData.myMoodTitle = cloudData.myMoodTitle || appState.myMoodTitle;
+            cloudData.myMoodNote = cloudData.myMoodNote || appState.myMoodNote;
+            cloudData.partnerMoodEmoji = cloudData.partnerMoodEmoji || appState.partnerMoodEmoji;
+            cloudData.partnerMoodTitle = cloudData.partnerMoodTitle || appState.partnerMoodTitle;
+            cloudData.partnerMoodNote = cloudData.partnerMoodNote || appState.partnerMoodNote;
             
             appState = cloudData;
             
