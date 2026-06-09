@@ -21,7 +21,7 @@ function verifySystemIntegrity() {
         return false;
     }
 
-    // 2. Periksa kecocokan teks hak cipta (Harus mengandung nama pembuat Hīro dan nama web)
+    // 2. Periksa kecocokan teks hak cipta (Harus mengandung nama pembuat Ryo dan nama web)
     const text = copyright.textContent || copyright.innerText;
     if (!text.includes('Ryo') || !text.includes('Sanctuary')) {
         triggerIntegrityCrash();
@@ -47,7 +47,7 @@ function verifySystemIntegrity() {
         return false;
     }
     const loginText = loginCopyright.textContent || loginCopyright.innerText;
-    if (!loginText.includes('Hīro') || !loginText.includes('Sanctuary')) {
+    if (!loginText.includes('Ryo') || !loginText.includes('Sanctuary')) {
         triggerIntegrityCrash();
         return false;
     }
