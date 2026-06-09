@@ -29,6 +29,9 @@ window.onload = function() {
         if (lockQ) lockQ.innerText = `"${appState.settings.secretQuestion}"`;
         if (lockHint) lockHint.innerText = appState.settings.secretAnswer;
     }
+
+    // Suntikkan pemilih identitas di halaman login secara dinamis
+    injectIdentitySelector();
     
     // Periksa status gerbang masuk (Lock)
     const isUnlocked = localStorage.getItem('lovebook_unlocked');
@@ -134,6 +137,84 @@ window.onYouTubeIframeAPIReady = function() {
     }
 };
 
+// Menghasilkan konfigurasi profil dinamis berdasarkan identitas browser aktif saat ini
+function getActiveProfiles() {
+    const role = localStorage.getItem('lovebook_user_role') || 'creator';
+    const s = appState.settings || {};
+    
+    if (role === 'partner') {
+        return {
+            myRole: 'partner',
+            partnerRole: 'creator',
+            myName: s.partnerName || 'Pasangan',
+            myCity: s.partnerCity || 'Tokyo',
+            myTimezone: s.partnerTimezone || 'Asia/Tokyo',
+            partnerName: s.myName || 'Pembuat',
+            partnerCity: s.myCity || 'Jakarta',
+            partnerTimezone: s.myTimezone || 'Asia/Jakarta'
+        };
+    } else {
+        return {
+            myRole: 'creator',
+            partnerRole: 'partner',
+            myName: s.myName || 'Pembuat',
+            myCity: s.myCity || 'Jakarta',
+            myTimezone: s.myTimezone || 'Asia/Jakarta',
+            partnerName: s.partnerName || 'Pasangan',
+            partnerCity: s.partnerCity || 'Tokyo',
+            partnerTimezone: s.partnerTimezone || 'Asia/Tokyo'
+        };
+    }
+}
+
+// Menyuntikkan Dropdown Pemilih Peran secara dinamis ke halaman login
+function injectIdentitySelector() {
+    const lockScreenContainer = document.querySelector('#lock-screen .text-left');
+    if (!lockScreenContainer) return;
+    
+    if (document.getElementById('identity-selector-wrapper')) {
+        // Jika sudah ada, cukup update pilihan teks namanya saja
+        const select = document.getElementById('identity-role-select');
+        if (select && appState && appState.settings) {
+            const currentVal = select.value;
+            select.innerHTML = `
+                <option value="creator">${appState.settings.myName || 'Pembuat'} (Pembuat)</option>
+                <option value="partner">${appState.settings.partnerName || 'Pasangan'} (Pasangan)</option>
+            `;
+            select.value = currentVal;
+        }
+        return;
+    }
+    
+    const wrapper = document.createElement('div');
+    wrapper.id = 'identity-selector-wrapper';
+    wrapper.className = 'mb-4';
+    
+    const label = document.createElement('label');
+    label.className = 'block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2';
+    label.innerText = 'Pilih Identitas Anda';
+    
+    const select = document.createElement('select');
+    select.id = 'identity-role-select';
+    select.className = 'w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 bg-white text-sm';
+    
+    const creatorName = (appState && appState.settings) ? appState.settings.myName : 'Pembuat';
+    const partnerName = (appState && appState.settings) ? appState.settings.partnerName : 'Pasangan';
+    
+    select.innerHTML = `
+        <option value="creator">${creatorName} (Pembuat)</option>
+        <option value="partner">${partnerName} (Pasangan)</option>
+    `;
+    
+    wrapper.appendChild(label);
+    wrapper.appendChild(select);
+    
+    const securityInput = document.getElementById('security-answer');
+    if (securityInput) {
+        lockScreenContainer.insertBefore(wrapper, securityInput);
+    }
+}
+
 // PENGISIAN FORM PENGATURAN
 function fillSettingsFields() {
     const fields = {
@@ -202,33 +283,88 @@ function checkDigitalKey() {
     if (answer === realAnswer) {
         appState.unlocked = true;
         localStorage.setItem('lovebook_unlocked', 'true');
-        
-        // Catat waktu login awal untuk memulai siklus 24 jam ke depan
-        localStorage.setItem('last_access_time', Date.now().toString());
-        
-        // PENTING: Simpan kunci jawaban aktif ke dalam browser ini saat berhasil masuk!
-        localStorage.setItem('last_active_answer', realAnswer);
-        
-        const lockScreen = document.getElementById('lock-screen');
-        if (lockScreen) {
-            lockScreen.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => {
-                lockScreen.classList.add('hidden');
-                const mainApp = document.getElementById('main-app');
-                if (mainApp) mainApp.classList.remove('hidden');
-                if (typeof initMainDashboard === 'function') {
-                    initMainDashboard();
-                }
-                showToast('Akses Diberikan!', 'Selamat datang di brankas digital rahasia kita.', 'heart');
-            }, 500);
-        }
+        // Menghasilkan konfigurasi profil dinamis berdasarkan identitas browser aktif saat ini
+function getActiveProfiles() {
+    const role = localStorage.getItem('lovebook_user_role') || 'creator';
+    const s = appState.settings || {};
+    
+    if (role === 'partner') {
+        return {
+            myRole: 'partner',
+            partnerRole: 'creator',
+            myName: s.partnerName || 'Pasangan',
+            myCity: s.partnerCity || 'Tokyo',
+            myTimezone: s.partnerTimezone || 'Asia/Tokyo',
+            partnerName: s.myName || 'Pembuat',
+            partnerCity: s.myCity || 'Jakarta',
+            partnerTimezone: s.myTimezone || 'Asia/Jakarta'
+        };
     } else {
-        showToast('Jawaban Salah 😢', 'Silakan coba lagi atau hubungi kekasihmu!', 'shield-alert');
+        return {
+            myRole: 'creator',
+            partnerRole: 'partner',
+            myName: s.myName || 'Pembuat',
+            myCity: s.myCity || 'Jakarta',
+            myTimezone: s.myTimezone || 'Asia/Jakarta',
+            partnerName: s.partnerName || 'Pasangan',
+            partnerCity: s.partnerCity || 'Tokyo',
+            partnerTimezone: s.partnerTimezone || 'Asia/Tokyo'
+        };
     }
 }
 
+// Menyuntikkan Dropdown Pemilih Peran secara dinamis ke halaman login
+function injectIdentitySelector() {
+    const lockScreenContainer = document.querySelector('#lock-screen .text-left');
+    if (!lockScreenContainer) return;
+    
+    if (document.getElementById('identity-selector-wrapper')) {
+        // Jika sudah ada, cukup update pilihan teks namanya saja
+        const select = document.getElementById('identity-role-select');
+        if (select && appState && appState.settings) {
+            const currentVal = select.value;
+            select.innerHTML = `
+                <option value="creator">${appState.settings.myName || 'Pembuat'} (Pembuat)</option>
+                <option value="partner">${appState.settings.partnerName || 'Pasangan'} (Pasangan)</option>
+            `;
+            select.value = currentVal;
+        }
+        return;
+    }
+    
+    const wrapper = document.createElement('div');
+    wrapper.id = 'identity-selector-wrapper';
+    wrapper.className = 'mb-4';
+    
+    const label = document.createElement('label');
+    label.className = 'block text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2';
+    label.innerText = 'Pilih Identitas Anda';
+    
+    const select = document.createElement('select');
+    select.id = 'identity-role-select';
+    select.className = 'w-full px-4 py-3 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 bg-white text-sm';
+    
+    const creatorName = (appState && appState.settings) ? appState.settings.myName : 'Pembuat';
+    const partnerName = (appState && appState.settings) ? appState.settings.partnerName : 'Pasangan';
+    
+    select.innerHTML = `
+        <option value="creator">${creatorName} (Pembuat)</option>
+        <option value="partner">${partnerName} (Pasangan)</option>
+    `;
+    
+    wrapper.appendChild(label);
+    wrapper.appendChild(select);
+    
+    const securityInput = document.getElementById('security-answer');
+    if (securityInput) {
+        lockScreenContainer.insertBefore(wrapper, securityInput);
+    }
+}
+        
 // MENJALANKAN INISIALISASI UTAMA UNTUK SEMUA MODUL FITUR
 function initMainDashboard() {
+    const profiles = getActiveProfiles();
+    
     if (typeof updateLoveTimers === 'function') updateLoveTimers();
     if (typeof renderTimeline === 'function') renderTimeline();
     if (typeof renderScrapbook === 'function') renderScrapbook();
@@ -261,6 +397,31 @@ function initMainDashboard() {
     if (ldrMyCity) ldrMyCity.innerText = `${appState.settings.myName} (${appState.settings.myCity})`;
     if (ldrPartnerCity) ldrPartnerCity.innerText = `${appState.settings.partnerName} (${appState.settings.partnerCity})`;
     if (missyouTitle) missyouTitle.innerText = `Kirim Rindu untuk ${appState.settings.partnerName}`;
+
+    // SINKRONISASI RENDERING MOOD SECARA REAL-TIME MULTIPLAYER
+    const moods = appState.moods || {
+        creator: { emoji: '🥰', title: 'Sangat Bahagia', note: 'Bahagia banget!' },
+        partner: { emoji: '😴', title: 'Sedikit Lelah', note: 'Butuh pelukan jauh.' }
+    };
+    const myMood = moods[profiles.myRole] || { emoji: '🥰', title: 'Sangat Bahagia', note: '' };
+    const partnerMood = moods[profiles.partnerRole] || { emoji: '😴', title: 'Sedikit Lelah', note: '' };
+
+    const myMoodEmoji = document.getElementById('my-mood-emoji');
+    const myMoodTitle = document.getElementById('my-mood-title');
+    const myMoodNote = document.getElementById('my-mood-note');
+    if (myMoodEmoji) myMoodEmoji.innerText = myMood.emoji;
+    if (myMoodTitle) myMoodTitle.innerText = myMood.title;
+    if (myMoodNote) myMoodNote.innerText = myMood.note || 'Baru saja diperbarui!';
+
+    const partnerMoodContainer = document.getElementById('mood-partner-label')?.nextElementSibling;
+    if (partnerMoodContainer) {
+        const partnerEmojiEl = partnerMoodContainer.querySelector('.text-3xl');
+        const partnerTitleEl = partnerMoodContainer.querySelector('h4');
+        const partnerNoteEl = partnerMoodContainer.querySelector('p');
+        if (partnerEmojiEl) partnerEmojiEl.innerText = partnerMood.emoji;
+        if (partnerTitleEl) partnerTitleEl.innerText = partnerMood.title;
+        if (partnerNoteEl) partnerNoteEl.innerText = partnerMood.note || 'Sedang sibuk beraktivitas.';
+    }
 }
 
 // ==========================================
@@ -452,6 +613,53 @@ function toggleMusic() {
         icon.setAttribute('data-lucide', 'play');
     }
     if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// MENGATUR MOOD SAYA SECARA SINKRON KE DATABASE FIREBASE
+function setMyMood(emoji, title) {
+    const profiles = getActiveProfiles();
+    if (!appState.moods) appState.moods = {};
+    
+    appState.moods[profiles.myRole] = {
+        emoji: emoji,
+        title: title,
+        note: 'Baru saja diperbarui!'
+    };
+    
+    saveToLocalStorage();
+    showToast('Mood Diperbarui!', `Hari ini emosimu terdeteksi sebagai: ${title}`, 'smile');
+}
+
+// DUAL WORLD CLOCKS
+function updateClocks() {
+    const now = new Date();
+    const profiles = getActiveProfiles();
+    
+    // Jam Lokalku berdasarkan Identitas login
+    try {
+        const optionsLocal = { timeZone: profiles.myTimezone, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const localTimeString = now.toLocaleTimeString('id-ID', optionsLocal);
+        const localEl = document.getElementById('local-time');
+        const ldrLocalEl = document.getElementById('ldr-time-local');
+        if (localEl) localEl.innerText = localTimeString;
+        if (ldrLocalEl) ldrLocalEl.innerText = localTimeString;
+    } catch (e) {
+        const localEl = document.getElementById('local-time');
+        if (localEl) localEl.innerText = now.toLocaleTimeString('id-ID');
+    }
+
+    // Jam Pasanganku berdasarkan Identitas login
+    try {
+        const optionsRemote = { timeZone: profiles.partnerTimezone, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const remoteTimeString = now.toLocaleTimeString('id-ID', optionsRemote);
+        const remoteEl = document.getElementById('remote-time');
+        const ldrRemoteEl = document.getElementById('ldr-time-remote');
+        if (remoteEl) remoteEl.innerText = remoteTimeString;
+        if (ldrRemoteEl) ldrRemoteEl.innerText = remoteTimeString;
+    } catch (e) {
+        const remoteEl = document.getElementById('remote-time');
+        if (remoteEl) remoteEl.innerText = now.toLocaleTimeString('id-ID');
+    }
 }
 
 // WATCH PARTY ROOM MOVIE SINKRONISASI
